@@ -1,7 +1,7 @@
 export interface Resume {
     resumeId: string;
     schemaVersion: "1.0";
-    templateId: "default";
+    templateId: "classic" | "modern";
     metadata: ResumeMetadata;
     sections: ResumeSection[];
 }
@@ -16,6 +16,7 @@ export type ResumeSection =
     | ExperienceSection
     | EducationSection
     | SkillsSection
+    | ProjectsSection
     | CustomSection;
 
 interface BaseSection {
@@ -29,6 +30,7 @@ export type SectionType =
     | "experience"
     | "education"
     | "skills"
+    | "projects"
     | "custom";
 
 export interface ContactSection extends BaseSection {
@@ -75,6 +77,18 @@ export interface SkillCategory {
     id: string;
     label: string;
     skills: string[];
+}
+
+export interface ProjectsSection extends BaseSection {
+    type: "projects";
+    items: ProjectItem[];
+}
+
+export interface ProjectItem {
+    id: string;
+    name: string;
+    description?: string;
+    link?: string;
 }
 
 export interface CustomSection extends BaseSection {

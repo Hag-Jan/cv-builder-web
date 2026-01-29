@@ -1,0 +1,58 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ============================================================================
+    // GLOBAL DEFAULT: Deny all access
+    // ============================================================================
+    // This is a security best practice - deny everything by default,
+    // then explicitly allow what you need.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    // ============================================================================
+    // RESUMES COLLECTION
+    // ============================================================================
+    // Security Model:
+    // - One resume per user
+    // - Document ID = user.uid
+    // - Users can only access their own resume
+    // - All operations require authentication
+    match /resumes/{userId} {
+      
+      // Allow read if:
+      // 1. User is authenticated (request.auth != null)
+      // 2. The document ID matches the authenticated user's UID
+      allow read: if request.auth != null 
+                  && request.auth.uid == userId;
+      
+      // Allow write (create/update) if:
+      // 1. User is authenticated
+      // 2. The document ID matches the authenticated user's UID
+      // 3. The resumeId field in the document matches the user's UID (data validation)
+      // 4. Document size is under 1MB (prevents abuse)
+      allow write: if request.auth != null 
+                   && request.auth.uid == userId
+                   && request.resource.data.resumeId == request.auth.uid
+                   && request.resource.size() < 1000000;  // 1MB size limit
+      
+      // Allow delete if:
+      // 1. User is authenticated
+      // 2. The document ID matches the authenticated user's UID
+      allow delete: if request.auth != null 
+                    && request.auth.uid == userId;
+    }
+    
+    // ============================================================================
+    // FUTURE COLLECTIONS (Example template)
+    // ============================================================================
+    // When you add new collections, follow this pattern:
+    //
+    // match /templates/{userId} {
+    //   allow read: if request.auth != null && request.auth.uid == userId;
+    //   allow write: if request.auth != null && request.auth.uid == userId;
+    // }
+  }
+}

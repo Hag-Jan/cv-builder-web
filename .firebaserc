@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "default": "cv-builder-web-4ede1",
+    "firebase deploy --only firestore:rules": "cv-builder-web-4ede1"
+  },
+  "targets": {},
+  "etags": {}
+}
