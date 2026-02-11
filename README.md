@@ -34,3 +34,27 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Features
+
+### ATS Keyword Checker
+
+Optimize your resume for Applicant Tracking Systems (ATS) by analyzing keyword matches against job descriptions.
+
+**How to use:**
+1. Navigate to the `/editor` page
+2. Click the **"Optimize for Job"** button (purple button in the top toolbar)
+3. Paste a job description in the sidebar textarea
+4. Click **"Analyze Resume"**
+5. Review your ATS score, matched keywords, and missing keywords
+6. Add missing keywords to your resume sections (Skills, Experience, etc.)
+7. Click **"Re-analyze"** to see your updated score
+
+**Features:**
+- **ATS Score:** Percentage match between your resume and job description
+- **Matched Keywords:** Skills and terms found in both (green badges)
+- **Missing Keywords:** Important terms to add (red badges)
+- **Warnings:** ATS compatibility issues (date formats, too few skills, keyword stuffing)
+
+**Algorithm Details:**
+See [docs/ATS_ALGORITHM.md](./docs/ATS_ALGORITHM.md) for technical details on the keyword extraction and matching algorithm.

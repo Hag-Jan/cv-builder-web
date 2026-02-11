@@ -10,7 +10,9 @@ import { ContactEditor } from "@/components/editor/sections/ContactEditor";
 import { ExperienceEditor } from "@/components/editor/sections/ExperienceEditor";
 import { EducationEditor } from "@/components/editor/sections/EducationEditor";
 import { SkillsEditor } from "@/components/editor/sections/SkillsEditor";
-import { ProjectsEditor } from "@/components/editor/sections/ProjectsEditor"; 
+import { ProjectsEditor } from "@/components/editor/sections/ProjectsEditor";
+import { ATSCheckerSidebar } from "@/components/ats/ATSCheckerSidebar";
+import ResumePreview from "@/components/ResumePreview";
 
 const ExportPdfButton = dynamic(() => import("@/components/ExportPdfButton"), { ssr: false });
 const TemplateSelect = dynamic(() => import("@/components/TemplateSelect"), { ssr: false });
@@ -18,6 +20,7 @@ const TemplateSelect = dynamic(() => import("@/components/TemplateSelect"), { ss
 export default function EditorPage() {
   const { resume, loading, saveResume } = useResume();
   const [activeSectionId, setActiveSectionId] = useState<string | null>("contact");
+  const [isATSSidebarOpen, setIsATSSidebarOpen] = useState(false);
 
   if (loading || !resume) {
     return <div className="p-8">Loading Resume...</div>;
@@ -51,35 +54,39 @@ export default function EditorPage() {
       <TopBar />
 
       {/* Main content */}
-      <div className="flex flex-1">
-        {/* Left Column: Editor */}
-        <div className="w-1/2 p-8 border-r bg-white">
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left Column: Editor - 30% */}
+        <div className="w-[30%] p-6 border-r bg-white overflow-y-auto">
           {/* Header + Actions */}
-          <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
-            <h2 className="text-2xl font-bold">Editor</h2>
+          <div className="flex flex-col gap-4 mb-6">
+            <h2 className="text-xl font-bold">Editor</h2>
 
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col gap-2">
               <TemplateSelect />
-              <div className="flex items-center gap-2">
-                <ExportPdfButton resume={resume} />
-                <button
-                  onClick={() => saveResume()}
-                  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 h-[42px] flex items-center transition-colors"
-                >
-                  Save Resume
-                </button>
-              </div>
+              <button
+                onClick={() => setIsATSSidebarOpen(true)}
+                className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition-colors text-sm"
+              >
+                Optimize for Job
+              </button>
+              <ExportPdfButton resume={resume} />
+              <button
+                onClick={() => saveResume()}
+                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors text-sm"
+              >
+                Save Resume
+              </button>
             </div>
           </div>
 
           {/* Section Tabs */}
-          <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+          <div className="flex flex-col gap-2 mb-6">
             {resume.sections.map((section) => (
               <button
                 key={section.id}
                 onClick={() => setActiveSectionId(section.id)}
-                className={`px-3 py-1 rounded border whitespace-nowrap transition-colors ${activeSectionId === section.id
-                  ? "bg-blue-100 border-blue-300 text-blue-700"
+                className={`px-3 py-2 rounded border text-left transition-colors ${activeSectionId === section.id
+                  ? "bg-blue-100 border-blue-300 text-blue-700 font-medium"
                   : "bg-gray-50 hover:bg-gray-100"
                   }`}
               >
@@ -93,23 +100,19 @@ export default function EditorPage() {
           </div>
         </div>
 
-        Right Column: Live JSON Preview
-        <div className="w-1/2 p-8 bg-gray-50">
-          <h2 className="text-xl font-bold mb-4">Live Schema Preview</h2>
-          <pre className="text-xs bg-gray-900 text-green-400 p-4 rounded shadow-inner">
-            {JSON.stringify(resume, null, 2)}
-          </pre>
+        {/* Center Column: Live Resume Preview - 70% (MAIN FOCUS) */}
+        <div className="w-[70%] bg-gray-50 overflow-hidden">
+          <ResumePreview resume={resume} />
         </div>
-
-        {/* Right Column: Live JSON Preview */}
-<div className="w-1/2 p-8 bg-gray-50">
-  <h2 className="text-xl font-bold mb-4">Live Schema Preview</h2>
-  <pre>
-    {JSON.stringify(resume, null, 2)}
-  </pre>
-</div>
-
       </div>
+
+      {/* ATS Checker Sidebar */}
+      {isATSSidebarOpen && (
+        <ATSCheckerSidebar
+          resume={resume}
+          onClose={() => setIsATSSidebarOpen(false)}
+        />
+      )}
     </div>
   );
 }

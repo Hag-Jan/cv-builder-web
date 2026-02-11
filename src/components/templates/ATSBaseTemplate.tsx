@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Resume, ContactSection, ExperienceSection, EducationSection, SkillsSection, CustomSection } from '@/types/resume-schema-v1';
+import type { Resume, ContactSection, ExperienceSection, EducationSection, SkillsSection, ProjectsSection, CustomSection } from '@/types/resume-schema-v1';
 
 interface ATSBaseTemplateProps {
     resume: Resume;
@@ -100,6 +100,22 @@ export default function ATSBaseTemplate({ resume }: ATSBaseTemplateProps) {
                                         <div key={category.id}>
                                             <p className="font-bold">{category.label}:</p>
                                             <p className="text-sm">{category.skills.join(', ')}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+
+                        {/* Projects Section */}
+                        {section.type === 'projects' && (
+                            <>
+                                <h2 className="text-lg font-bold mb-3 uppercase border-b border-black pb-1">Projects</h2>
+                                <div className="space-y-3">
+                                    {(section as ProjectsSection).items.map((item) => (
+                                        <div key={item.id}>
+                                            <p className="font-bold">{item.name}</p>
+                                            {item.description && <p className="text-sm">{item.description}</p>}
+                                            {item.link && <p className="text-sm">{item.link}</p>}
                                         </div>
                                     ))}
                                 </div>

@@ -39,7 +39,7 @@ export default function EditorLayout({
         <div className="flex h-screen bg-gray-50">
             {/* Sidebar placeholder */}
             <aside className="w-64 bg-white border-r border-gray-200 p-4 overflow-y-auto shrink-0">
-                <h1 className="text-xl font-bold mb-6 text-blue-600">ResumaATS</h1>
+                <h1 className="text-xl font-bold mb-6 text-blue-600">ResumeATS</h1>
                 <nav className="space-y-2">
                     <div className="font-medium text-gray-500 mb-2">Sections</div>
                     {/* section navigation items */}

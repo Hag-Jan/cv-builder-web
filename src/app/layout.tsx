@@ -6,7 +6,7 @@ import { Providers } from "./Providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "ResumaATS",
+  title: "ResumeATS",
   description: "ATS-Friendly Resume Builder",
 };
 

@@ -15,7 +15,7 @@ export default function TopBar() {
 
     return (
         <div className="flex items-center justify-between px-4 py-3 border-b">
-            <h1 className="text-lg font-semibold">ResumaATS</h1>
+            <h1 className="text-lg font-semibold">ResumeATS</h1>
 
             <button
                 onClick={handleLogout}

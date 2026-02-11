@@ -1,12 +1,20 @@
 "use client";
 
 import { useResume } from "@/contexts/ResumeContext";
+import { useATS } from "@/contexts/ATSContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { ExperienceSection, ExperienceItem } from "@/types/resume-schema-v1";
 import { LexicalRichText } from "../LexicalRichText";
+import { AISuggestionsPopover } from "@/components/ai/AISuggestionsPopover";
 import { v4 as uuidv4 } from "uuid";
+import { Sparkles } from "lucide-react";
+import { useState } from "react";
 
 export function ExperienceEditor({ section }: { section: ExperienceSection }) {
     const { updateSection } = useResume();
+    const { atsResult, jobDescription } = useATS();
+    const { user } = useAuth();
+    const [showAIPopover, setShowAIPopover] = useState<{ itemId: string; bulletIndex: number } | null>(null);
 
     const handleAddItem = () => {
         const newItem: ExperienceItem = {
@@ -33,6 +41,17 @@ export function ExperienceEditor({ section }: { section: ExperienceSection }) {
         const newItems = section.items.filter((item) => item.id !== itemId);
         updateSection({ ...section, items: newItems });
     };
+
+    const handleApplySuggestion = (itemId: string, bulletIndex: number, suggestion: string) => {
+        const item = section.items.find(i => i.id === itemId);
+        if (!item) return;
+
+        const newBullets = [...item.bullets];
+        newBullets[bulletIndex] = suggestion;
+        updateItem(itemId, { bullets: newBullets });
+    };
+
+    const hasATSResults = atsResult && atsResult.missingKeywords.length > 0 && jobDescription;
 
     return (
         <div className="space-y-6">
@@ -102,9 +121,40 @@ export function ExperienceEditor({ section }: { section: ExperienceSection }) {
                             onChange={(bullets) => updateItem(item.id, { bullets })}
                             placeholder="• Leading a team of..."
                         />
+
+                        {/* AI Improve Buttons for Each Bullet */}
+                        {hasATSResults && item.bullets.length > 0 && (
+                            <div className="mt-3 space-y-2">
+                                <p className="text-xs font-medium text-gray-600">AI Improve Bullets:</p>
+                                {item.bullets.map((bullet, index) => (
+                                    <div key={index} className="flex items-start gap-2 bg-purple-50 p-2 rounded">
+                                        <span className="text-xs text-gray-600 flex-1 line-clamp-2">{bullet}</span>
+                                        <button
+                                            onClick={() => setShowAIPopover({ itemId: item.id, bulletIndex: index })}
+                                            className="flex items-center gap-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-3 py-1 rounded text-xs font-medium hover:opacity-90 transition-opacity whitespace-nowrap"
+                                        >
+                                            <Sparkles className="w-3 h-3" />
+                                            AI Improve
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             ))}
+
+            {/* AI Suggestions Popover */}
+            {showAIPopover && user && hasATSResults && (
+                <AISuggestionsPopover
+                    originalText={section.items.find(i => i.id === showAIPopover.itemId)?.bullets[showAIPopover.bulletIndex] || ""}
+                    jobDescription={jobDescription}
+                    missingKeywords={atsResult.missingKeywords}
+                    onApply={(suggestion) => handleApplySuggestion(showAIPopover.itemId, showAIPopover.bulletIndex, suggestion)}
+                    onClose={() => setShowAIPopover(null)}
+                    userId={user.uid}
+                />
+            )}
         </div>
     );
 }
