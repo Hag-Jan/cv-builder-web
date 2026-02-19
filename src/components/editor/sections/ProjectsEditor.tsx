@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import type { ProjectsSectionV2, ProjectItemV2 } from "@/types/resume-schema-v2";
 import { v4 as uuidv4 } from "uuid";
 import { Plus, Trash2, FolderGit2, Link as LinkIcon, Code2, ListTodo, Sparkles } from "lucide-react";
+import { Input } from "@/components/ui/Input";
 import dynamic from "next/dynamic";
 import { useState } from "react";
 import { AISuggestionsPopover } from "@/components/ai/AISuggestionsPopover";
@@ -62,8 +63,8 @@ export function ProjectsEditor({ section }: { section: ProjectsSectionV2 }) {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center border-b pb-2">
-                <h3 className="text-lg font-semibold text-gray-800">Projects</h3>
+            <div className="flex justify-between items-center border-b dark:border-gray-800 pb-2">
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Projects</h3>
                 <button
                     onClick={handleAddItem}
                     className="flex items-center gap-1.5 text-sm bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors shadow-sm"
@@ -83,8 +84,8 @@ export function ProjectsEditor({ section }: { section: ProjectsSectionV2 }) {
 
             <div className="space-y-4">
                 {section.items.map((item) => (
-                    <div key={item.id} className="border border-gray-200 rounded-lg bg-white shadow-sm overflow-hidden group">
-                        <div className="bg-gray-50/50 px-4 py-2 border-b border-gray-100 flex justify-between items-center">
+                    <div key={item.id} className="border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-gray-900/50 shadow-sm overflow-hidden group">
+                        <div className="bg-gray-50/50 dark:bg-gray-800/50 px-4 py-2 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
                             <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Project Details</span>
                             <button onClick={() => removeItem(item.id)} className="text-gray-400 hover:text-red-500 transition-colors">
                                 <Trash2 size={16} />
@@ -94,40 +95,37 @@ export function ProjectsEditor({ section }: { section: ProjectsSectionV2 }) {
                         <div className="p-4 space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-1">
-                                    <label className="text-xs font-semibold text-gray-600 uppercase tracking-tight">Project Name</label>
-                                    <input
+                                    <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-tight">Project Name</label>
+                                    <Input
                                         value={item.name}
                                         onChange={(e) => updateItem(item.id, { name: e.target.value })}
-                                        className="w-full border border-gray-300 p-2 rounded text-sm focus:ring-1 focus:ring-blue-500 outline-none"
                                         placeholder="E-commerce Platform"
                                     />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-xs font-semibold text-gray-600 uppercase tracking-tight flex items-center gap-1">
+                                    <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-tight flex items-center gap-1">
                                         <LinkIcon size={10} /> Project Link
                                     </label>
-                                    <input
+                                    <Input
                                         value={item.link || ""}
                                         onChange={(e) => updateItem(item.id, { link: e.target.value })}
-                                        className="w-full border border-gray-300 p-2 rounded text-sm focus:ring-1 focus:ring-blue-500 outline-none"
                                         placeholder="https://github.com/..."
                                     />
                                 </div>
                                 <div className="md:col-span-2 space-y-1">
-                                    <label className="text-xs font-semibold text-gray-600 uppercase tracking-tight flex items-center gap-1">
+                                    <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-tight flex items-center gap-1">
                                         <Code2 size={10} /> Tech Stack (comma separated)
                                     </label>
-                                    <input
+                                    <Input
                                         value={item.techStack?.join(", ") || ""}
                                         onChange={(e) => updateItem(item.id, { techStack: e.target.value.split(",").map(t => t.trim()).filter(Boolean) })}
-                                        className="w-full border border-gray-300 p-2 rounded text-sm focus:ring-1 focus:ring-blue-500 outline-none"
                                         placeholder="Next.js, Tailwind, TypeScript"
                                     />
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-xs font-semibold text-gray-600 uppercase tracking-tight flex items-center gap-1">
+                                <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-tight flex items-center gap-1">
                                     <ListTodo size={10} /> Key Accomplishments
                                 </label>
                                 <LexicalRichText
@@ -137,14 +135,14 @@ export function ProjectsEditor({ section }: { section: ProjectsSectionV2 }) {
                                 />
 
                                 {hasATSResults && item.bullets && item.bullets.length > 0 && (
-                                    <div className="mt-3 space-y-2 bg-purple-50/50 p-3 rounded-md border border-purple-100">
+                                    <div className="mt-3 space-y-2 bg-purple-50/50 dark:bg-purple-900/10 p-3 rounded-md border border-purple-100 dark:border-purple-900/20">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <Sparkles size={14} className="text-purple-600" />
-                                            <p className="text-xs font-bold text-gray-700 uppercase tracking-wider">AI Suggestions</p>
+                                            <Sparkles size={14} className="text-purple-600 dark:text-purple-400" />
+                                            <p className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">AI Suggestions</p>
                                         </div>
                                         {item.bullets.map((bullet, index) => (
-                                            <div key={index} className="flex items-center gap-2 bg-white p-2 rounded border border-purple-100">
-                                                <span className="text-[11px] text-gray-600 flex-1 line-clamp-1 italic">{bullet}</span>
+                                            <div key={index} className="flex items-center gap-2 bg-white dark:bg-gray-800 p-2 rounded border border-purple-100 dark:border-purple-900/20">
+                                                <span className="text-[11px] text-gray-600 dark:text-gray-400 flex-1 line-clamp-1 italic">{bullet}</span>
                                                 <button
                                                     onClick={() => setShowAIPopover({ itemId: item.id, bulletIndex: index })}
                                                     className="flex items-center gap-1 bg-purple-600 text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase hover:bg-purple-700 transition-all"

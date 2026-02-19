@@ -4,6 +4,7 @@ import { useResume } from "@/contexts/ResumeContext";
 import type { EducationSectionV2, EducationItemV2 } from "@/types/resume-schema-v2";
 import { v4 as uuidv4 } from "uuid";
 import { Plus, Trash2, GraduationCap, Calendar, Award, BarChart } from "lucide-react";
+import { Input } from "@/components/ui/Input";
 
 export function EducationEditor({ section }: { section: EducationSectionV2 }) {
     const { updateSection } = useResume();
@@ -37,8 +38,8 @@ export function EducationEditor({ section }: { section: EducationSectionV2 }) {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center border-b pb-2">
-                <h3 className="text-lg font-semibold text-gray-800">Education</h3>
+            <div className="flex justify-between items-center border-b dark:border-gray-800 pb-2">
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Education</h3>
                 <button
                     onClick={handleAddItem}
                     className="flex items-center gap-1.5 text-sm bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors shadow-sm"
@@ -58,8 +59,8 @@ export function EducationEditor({ section }: { section: EducationSectionV2 }) {
 
             <div className="space-y-4">
                 {section.items.map((item) => (
-                    <div key={item.id} className="border border-gray-200 rounded-lg bg-white shadow-sm overflow-hidden">
-                        <div className="bg-gray-50/50 px-4 py-2 border-b border-gray-100 flex justify-between items-center">
+                    <div key={item.id} className="border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-gray-900/50 shadow-sm overflow-hidden">
+                        <div className="bg-gray-50/50 dark:bg-gray-800/50 px-4 py-2 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
                             <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">School Details</span>
                             <button onClick={() => removeItem(item.id)} className="text-gray-400 hover:text-red-500 transition-colors">
                                 <Trash2 size={16} />
@@ -69,61 +70,58 @@ export function EducationEditor({ section }: { section: EducationSectionV2 }) {
                         <div className="p-4 space-y-4">
                             <div className="space-y-3">
                                 <div>
-                                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-tight mb-1">
+                                    <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-tight mb-1">
                                         School / University <span className="text-red-500">*</span>
                                     </label>
-                                    <input
+                                    <Input
                                         value={item.school}
                                         onChange={(e) => updateItem(item.id, { school: e.target.value })}
-                                        className={`w-full border ${!item.school.trim() ? 'border-amber-200' : 'border-gray-300'} p-2 rounded-md text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-shadow`}
+                                        isInvalid={!item.school.trim()}
                                         placeholder="University of Examples"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-tight mb-1">
+                                    <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-tight mb-1">
                                         Degree / Major <span className="text-red-500">*</span>
                                     </label>
-                                    <input
+                                    <Input
                                         value={item.degree}
                                         onChange={(e) => updateItem(item.id, { degree: e.target.value })}
-                                        className={`w-full border ${!item.degree.trim() ? 'border-amber-200' : 'border-gray-300'} p-2 rounded-md text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-shadow`}
+                                        isInvalid={!item.degree.trim()}
                                         placeholder="Bachelor of Science in Computer Science"
                                     />
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div>
-                                        <label className="block text-xs font-semibold text-gray-600 uppercase tracking-tight flex items-center gap-1 mb-1">
+                                        <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-tight flex items-center gap-1 mb-1">
                                             <Calendar size={10} /> Graduation Date
                                         </label>
-                                        <input
+                                        <Input
                                             type="month"
                                             value={item.date}
                                             onChange={(e) => updateItem(item.id, { date: e.target.value })}
-                                            className="w-full border border-gray-300 p-2 rounded-md text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-shadow"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-semibold text-gray-600 uppercase tracking-tight flex items-center gap-1 mb-1">
+                                        <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-tight flex items-center gap-1 mb-1">
                                             <BarChart size={10} /> GPA
                                         </label>
-                                        <input
+                                        <Input
                                             type="text"
                                             value={item.gpa || ""}
                                             onChange={(e) => updateItem(item.id, { gpa: e.target.value })}
-                                            className="w-full border border-gray-300 p-2 rounded-md text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-shadow"
                                             placeholder="3.8 / 4.0"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-semibold text-gray-600 uppercase tracking-tight flex items-center gap-1 mb-1">
+                                        <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-tight flex items-center gap-1 mb-1">
                                             <Award size={10} /> Honors
                                         </label>
-                                        <input
+                                        <Input
                                             type="text"
                                             value={item.honors || ""}
                                             onChange={(e) => updateItem(item.id, { honors: e.target.value })}
-                                            className="w-full border border-gray-300 p-2 rounded-md text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-shadow"
                                             placeholder="Cum Laude"
                                         />
                                     </div>

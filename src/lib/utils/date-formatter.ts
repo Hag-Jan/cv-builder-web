@@ -62,7 +62,7 @@ export function formatPhone(phone: string): string {
  * Example: ": Java" → "Java", "• Python" → "Python"
  */
 export function sanitizeSkill(raw: string): string {
-    return raw.replace(/^[\s\u2022\-\*•·:,;]+/, '').trim();
+    return raw.replace(/^[\s\u2022\-\*•·:,;]+/, '');
 }
 
 /**

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { db } from "@/lib/firebase.client";
 import { doc, getDoc, setDoc } from "firebase/firestore";
@@ -48,8 +48,17 @@ const INITIAL_RESUME_V2: ResumeV2 = {
 
 export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
     const { user } = useAuth();
-    const [resume, setResume] = useState<ResumeV2 | null>(null);
+    const [resume, setResumeState] = useState<ResumeV2 | null>(null);
+    const resumeRef = useRef<ResumeV2 | null>(null);
     const [loading, setLoading] = useState(true);
+
+    const setResume = useCallback((updater: ResumeV2 | null | ((prev: ResumeV2 | null) => ResumeV2 | null)) => {
+        setResumeState((prev) => {
+            const next = typeof updater === "function" ? updater(prev) : updater;
+            resumeRef.current = next;
+            return next;
+        });
+    }, []);
 
     // Load Resume
     useEffect(() => {
@@ -94,13 +103,22 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
         loadResume();
     }, [user]);
 
+    const lastUpdateRef = useRef<number>(0);
+
     const updateSection = useCallback((updatedSection: ResumeSectionV2) => {
+        const now = Date.now();
+        lastUpdateRef.current = now;
+
         setResume((prev) => {
             if (!prev) return null;
             const newSections = prev.sections.map((s) =>
                 s.id === updatedSection.id ? updatedSection : s
             );
-            return { ...prev, sections: newSections };
+            return {
+                ...prev,
+                sections: newSections,
+                metadata: { ...prev.metadata, updatedAt: new Date(now).toISOString() }
+            };
         });
     }, []);
 
@@ -136,34 +154,44 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
     }, []);
 
     const saveResume = useCallback(async () => {
-        if (!resume) return;
+        // We use a functional pattern to get the ABSOLUTE LATEST state
+        // to avoid closure staleness during the async save operation.
+        const currentResume = resumeRef.current;
+        if (!currentResume || !user) return;
 
         const toSave: ResumeV2 = {
-            ...resume,
-            metadata: { ...resume.metadata, updatedAt: new Date().toISOString() }
+            ...currentResume,
+            metadata: { ...currentResume.metadata, updatedAt: new Date().toISOString() }
         };
 
         // 1. Fallback to LocalStorage immediately
         try {
-            localStorage.setItem(`resume_backup_${resume.resumeId || 'anon'}`, JSON.stringify(toSave));
+            localStorage.setItem(`resume_backup_${user.uid}`, JSON.stringify(toSave));
         } catch (e) {
             console.warn("LocalStorage save failed:", e);
         }
-
-        if (!user) return;
 
         // 2. Sanitize to remove undefined values for Firestore
         const sanitized = JSON.parse(JSON.stringify(toSave));
 
         try {
+            const startTime = Date.now();
             await setDoc(doc(db, "resumes", user.uid), sanitized);
-            setResume(toSave);
             console.log("Resume saved successfully (v2)");
+
+            // Only update local state if no newer local changes happened during the save
+            if (lastUpdateRef.current <= startTime) {
+                setResume(prev => {
+                    if (!prev) return prev;
+                    // Only update metadata to reflect saved state, keep current sections
+                    return { ...prev, metadata: toSave.metadata };
+                });
+            }
         } catch (error) {
             console.error("Error saving resume:", error);
             throw error;
         }
-    }, [resume, user]);
+    }, [user]);
 
     // Load Backup on mount if user not yet loaded or if fresh session
     useEffect(() => {

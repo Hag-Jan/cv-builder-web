@@ -88,11 +88,11 @@ export function LexicalRichText({
 
     return (
         <LexicalComposer initialConfig={initialConfig}>
-            <div className={clsx("relative border rounded p-2 min-h-[100px]", className)}>
+            <div className={clsx("relative border border-gray-200 dark:border-gray-800 rounded p-2 min-h-[100px] bg-white dark:bg-gray-800/50", className)}>
                 <RichTextPlugin
                     contentEditable={<ContentEditable className="outline-none h-full" />}
                     placeholder={
-                        <div className="absolute top-2 left-2 text-gray-400 pointer-events-none">
+                        <div className="absolute top-2 left-2 text-gray-400 dark:text-gray-500 pointer-events-none">
                             {placeholder || "Enter text..."}
                         </div>
                     }

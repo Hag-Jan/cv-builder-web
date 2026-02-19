@@ -3,6 +3,7 @@ import type { ContactSectionV2 } from "@/types/resume-schema-v2";
 import { isValidEmail, isValidUrl, isValidPhone } from "@/lib/utils/date-formatter";
 import { useState } from "react";
 import { User, Mail, Phone, MapPin, Linkedin, Github, Globe, AlertCircle } from "lucide-react";
+import { Input } from "@/components/ui/Input";
 
 export function ContactEditor({ section }: { section: ContactSectionV2 }) {
     const { updateSection } = useResume();
@@ -54,12 +55,12 @@ export function ContactEditor({ section }: { section: ContactSectionV2 }) {
                     {required && <span className="text-red-500">*</span>}
                 </label>
                 <div className="relative group">
-                    <input
+                    <Input
                         type={type}
                         value={section[field] || ""}
                         onChange={(e) => handleChange(field, e.target.value)}
                         onBlur={() => handleBlur(field)}
-                        className={`w-full bg-white border ${isInvalid ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200 group-hover:border-blue-300'} p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-gray-300 font-medium`}
+                        isInvalid={!!isInvalid}
                         placeholder={placeholder}
                     />
                     {isInvalid && (
@@ -75,9 +76,9 @@ export function ContactEditor({ section }: { section: ContactSectionV2 }) {
 
     return (
         <div className="space-y-5">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                <h3 className="text-lg font-bold text-gray-800 tracking-tight">Contact Information</h3>
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-2 py-1 rounded">Basics</span>
+            <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3">
+                <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 tracking-tight">Contact Information</h3>
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50 dark:bg-gray-800/50 px-2 py-1 rounded">Basics</span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-4">
