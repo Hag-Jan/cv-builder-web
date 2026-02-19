@@ -32,25 +32,9 @@ export default function EditorPage() {
   const [activeSectionId, setActiveSectionId] = useState<string | null>("contact");
   const [isATSSidebarOpen, setIsATSSidebarOpen] = useState(false);
 
-  if (loading || !resume) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-white">
-        <div className="flex flex-col items-center gap-3">
-          <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-600 border-t-transparent" />
-          <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">Hydrating Resume...</p>
-        </div>
-      </div>
-    );
-  }
+  const renderSectionEditor = React.useMemo(() => {
+    if (loading || !resume) return null;
 
-  // Build nav items from resume sections
-  const navItems = resume.sections.map((s) => ({
-    id: s.id,
-    type: s.type as any,
-    label: s.type === "custom" ? (s as any).title || "Custom" : s.type,
-  }));
-
-  const renderSectionEditor = () => {
     const section = resume.sections.find((s) => s.id === activeSectionId);
     if (!section) {
       return (
@@ -84,7 +68,26 @@ export default function EditorPage() {
       default:
         return <div className="p-12 text-center text-gray-400 italic">Unknown section type: {section.type}</div>;
     }
-  };
+  }, [resume, activeSectionId, loading]);
+
+  if (loading || !resume) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-white">
+        <div className="flex flex-col items-center gap-3">
+          <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-600 border-t-transparent" />
+          <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">Hydrating Resume...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Build nav items from resume sections
+  const navItems = resume.sections.map((s) => ({
+    id: s.id,
+    type: s.type as any,
+    label: s.type === "custom" ? (s as any).title || "Custom" : s.type,
+  }));
+
 
   return (
     <div className="flex flex-col h-full bg-white select-none">
@@ -127,7 +130,7 @@ export default function EditorPage() {
         <div className="w-[38%] border-r border-gray-100 bg-white overflow-hidden flex flex-col shadow-[4px_0_24px_-12px_rgba(0,0,0,0.05)]">
           <EditorShell>
             <div className="p-8 h-full">
-              {renderSectionEditor()}
+              {renderSectionEditor}
             </div>
           </EditorShell>
         </div>

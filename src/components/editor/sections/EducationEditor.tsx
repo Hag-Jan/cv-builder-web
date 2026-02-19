@@ -5,6 +5,7 @@ import type { EducationSectionV2, EducationItemV2 } from "@/types/resume-schema-
 import { v4 as uuidv4 } from "uuid";
 import { Plus, Trash2, GraduationCap, Calendar, Award, BarChart } from "lucide-react";
 import { Input } from "@/components/ui/Input";
+import { MonthYearPicker } from "../inputs/MonthYearPicker";
 
 export function EducationEditor({ section }: { section: EducationSectionV2 }) {
     const { updateSection } = useResume();
@@ -18,22 +19,31 @@ export function EducationEditor({ section }: { section: EducationSectionV2 }) {
             gpa: "",
             honors: "",
         };
-        updateSection({
-            ...section,
-            items: [...section.items, newItem],
+        updateSection(section.id, (prev) => {
+            const casted = prev as EducationSectionV2;
+            return {
+                ...casted,
+                items: [...casted.items, newItem],
+            };
         });
     };
 
     const updateItem = (itemId: string, updates: Partial<EducationItemV2>) => {
-        const newItems = section.items.map((item) =>
-            item.id === itemId ? { ...item, ...updates } : item
-        );
-        updateSection({ ...section, items: newItems });
+        updateSection(section.id, (prev) => {
+            const casted = prev as EducationSectionV2;
+            const newItems = casted.items.map((item) =>
+                item.id === itemId ? { ...item, ...updates } : item
+            );
+            return { ...casted, items: newItems };
+        });
     };
 
     const removeItem = (itemId: string) => {
-        const newItems = section.items.filter((item) => item.id !== itemId);
-        updateSection({ ...section, items: newItems });
+        updateSection(section.id, (prev) => {
+            const casted = prev as EducationSectionV2;
+            const newItems = casted.items.filter((item) => item.id !== itemId);
+            return { ...casted, items: newItems };
+        });
     };
 
     return (
@@ -93,14 +103,11 @@ export function EducationEditor({ section }: { section: EducationSectionV2 }) {
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div>
-                                        <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-tight flex items-center gap-1 mb-1">
-                                            <Calendar size={10} /> Graduation Date
-                                        </label>
-                                        <Input
-                                            type="month"
+                                    <div className="md:col-span-1">
+                                        <MonthYearPicker
+                                            label="Graduation Date"
                                             value={item.date}
-                                            onChange={(e) => updateItem(item.id, { date: e.target.value })}
+                                            onChange={(val) => updateItem(item.id, { date: val })}
                                         />
                                     </div>
                                     <div>

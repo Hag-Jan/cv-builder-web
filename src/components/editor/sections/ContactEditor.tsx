@@ -1,8 +1,8 @@
 import { useResume } from "@/contexts/ResumeContext";
 import type { ContactSectionV2 } from "@/types/resume-schema-v2";
-import { isValidEmail, isValidUrl, isValidPhone } from "@/lib/utils/date-formatter";
+import { isValidEmail, isValidUrl, isValidPhone, normalizePhone } from "@/lib/utils/date-formatter";
 import { useState } from "react";
-import { User, Mail, Phone, MapPin, Linkedin, Github, Globe, AlertCircle } from "lucide-react";
+import { User, Mail, Phone, MapPin, Linkedin, Github, Globe, AlertCircle, Wand2 } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 
 export function ContactEditor({ section }: { section: ContactSectionV2 }) {
@@ -10,14 +10,20 @@ export function ContactEditor({ section }: { section: ContactSectionV2 }) {
     const [touched, setTouched] = useState<Record<string, boolean>>({});
 
     const handleChange = (field: keyof ContactSectionV2, value: string) => {
-        updateSection({
-            ...section,
+        updateSection(section.id, (prev) => ({
+            ...prev,
             [field]: value,
-        });
+        }));
     };
 
     const handleBlur = (field: string) => {
         setTouched(prev => ({ ...prev, [field]: true }));
+    };
+
+    const handleNormalizePhone = () => {
+        if (section.phone) {
+            handleChange("phone", normalizePhone(section.phone));
+        }
     };
 
     const errors = {
@@ -35,25 +41,38 @@ export function ContactEditor({ section }: { section: ContactSectionV2 }) {
         type = "text",
         placeholder,
         icon: Icon,
-        required = false
+        required = false,
+        action
     }: {
         label: string,
         field: keyof ContactSectionV2,
         type?: string,
         placeholder: string,
         icon: any,
-        required?: boolean
+        required?: boolean,
+        action?: { label: string, icon: any, onClick: () => void }
     }) => {
         const error = errors[field as keyof typeof errors];
         const isInvalid = touched[field] && error;
 
         return (
             <div className="space-y-1">
-                <label className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">
-                    <Icon size={10} className={isInvalid ? "text-red-500" : "text-gray-400"} />
-                    {label}
-                    {required && <span className="text-red-500">*</span>}
-                </label>
+                <div className="flex justify-between items-center px-1">
+                    <label className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                        <Icon size={10} className={isInvalid ? "text-red-500" : "text-gray-400"} />
+                        {label}
+                        {required && <span className="text-red-500">*</span>}
+                    </label>
+                    {action && section[field] && (
+                        <button
+                            onClick={action.onClick}
+                            className="text-[9px] font-bold text-blue-500 hover:text-blue-600 uppercase flex items-center gap-1 transition-colors"
+                        >
+                            <action.icon size={10} />
+                            {action.label}
+                        </button>
+                    )}
+                </div>
                 <div className="relative group">
                     <Input
                         type={type}
@@ -87,7 +106,14 @@ export function ContactEditor({ section }: { section: ContactSectionV2 }) {
                 </div>
 
                 <InputField label="Email Address" field="email" type="email" placeholder="john@example.com" icon={Mail} required />
-                <InputField label="Phone Number" field="phone" type="tel" placeholder="+1 555 000 0000" icon={Phone} />
+                <InputField
+                    label="Phone Number"
+                    field="phone"
+                    type="tel"
+                    placeholder="+1 555 000 0000"
+                    icon={Phone}
+                    action={{ label: "Normalize", icon: Wand2, onClick: handleNormalizePhone }}
+                />
 
                 <div className="md:col-span-2">
                     <InputField label="Location / City" field="location" placeholder="New York, NY" icon={MapPin} />

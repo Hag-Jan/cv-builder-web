@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from "uuid";
 import { Sparkles, Loader2, Plus, Trash2, MapPin, Calendar, Briefcase } from "lucide-react";
 import { useState } from "react";
 import { Input } from "@/components/ui/Input";
+import { MonthYearPicker } from "../inputs/MonthYearPicker";
 
 const LexicalRichText = dynamic(() => import("../LexicalRichText").then((mod) => mod.LexicalRichText), {
     ssr: false,
@@ -34,22 +35,31 @@ export function ExperienceEditor({ section }: { section: ExperienceSectionV2 }) 
             startDate: "",
             bullets: [],
         };
-        updateSection({
-            ...section,
-            items: [...section.items, newItem],
+        updateSection(section.id, (prev) => {
+            const casted = prev as ExperienceSectionV2;
+            return {
+                ...casted,
+                items: [...casted.items, newItem],
+            };
         });
     };
 
     const updateItem = (itemId: string, updates: Partial<ExperienceItemV2>) => {
-        const newItems = section.items.map((item) =>
-            item.id === itemId ? { ...item, ...updates } : item
-        );
-        updateSection({ ...section, items: newItems });
+        updateSection(section.id, (prev) => {
+            const casted = prev as ExperienceSectionV2;
+            const newItems = casted.items.map((item) =>
+                item.id === itemId ? { ...item, ...updates } : item
+            );
+            return { ...casted, items: newItems };
+        });
     };
 
     const removeItem = (itemId: string) => {
-        const newItems = section.items.filter((item) => item.id !== itemId);
-        updateSection({ ...section, items: newItems });
+        updateSection(section.id, (prev) => {
+            const casted = prev as ExperienceSectionV2;
+            const newItems = casted.items.filter((item) => item.id !== itemId);
+            return { ...casted, items: newItems };
+        });
     };
 
     const handleApplySuggestion = (itemId: string, bulletIndex: number, suggestion: string) => {
@@ -145,41 +155,18 @@ export function ExperienceEditor({ section }: { section: ExperienceSectionV2 }) 
                                         placeholder="San Francisco, CA"
                                     />
                                 </div>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-tight flex items-center gap-1">
-                                            <Calendar size={10} /> Start
-                                        </label>
-                                        <Input
-                                            type="month"
-                                            value={item.startDate}
-                                            onChange={(e) => updateItem(item.id, { startDate: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <div className="flex justify-between items-center">
-                                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-tight flex items-center gap-1">
-                                                <Calendar size={10} /> End
-                                            </label>
-                                            <label className="flex items-center gap-1 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={item.endDate === "Present"}
-                                                    onChange={(e) => updateItem(item.id, { endDate: e.target.checked ? "Present" : "" })}
-                                                    className="w-3 h-3 rounded text-blue-600 focus:ring-0"
-                                                />
-                                                <span className="text-[10px] font-bold text-gray-400">PRESENT</span>
-                                            </label>
-                                        </div>
-                                        <Input
-                                            type={item.endDate === "Present" ? "text" : "month"}
-                                            value={item.endDate || ""}
-                                            disabled={item.endDate === "Present"}
-                                            onChange={(e) => updateItem(item.id, { endDate: e.target.value })}
-                                            className={item.endDate === "Present" ? "bg-gray-50 dark:bg-gray-800 text-gray-500 italic" : ""}
-                                            placeholder={item.endDate === "Present" ? "Present" : ""}
-                                        />
-                                    </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <MonthYearPicker
+                                        label="Start Date"
+                                        value={item.startDate}
+                                        onChange={(val) => updateItem(item.id, { startDate: val })}
+                                    />
+                                    <MonthYearPicker
+                                        label="End Date"
+                                        value={item.endDate || ""}
+                                        showPresent
+                                        onChange={(val) => updateItem(item.id, { endDate: val })}
+                                    />
                                 </div>
                             </div>
 

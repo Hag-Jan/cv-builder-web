@@ -31,6 +31,14 @@ function SynchronizationPlugin({ value }: { value: string[] }) {
             isFirstRender.current = false;
         }
 
+        // CRITICAL PERFORMANCE GUARD:
+        // Do not update the editor state if the editor is currently focused.
+        // This prevents "input blocking" and cursor jumps caused by the 
+        // synchronization loop during active typing.
+        if (editor.getRootElement() === document.activeElement) {
+            return;
+        }
+
         console.log("[Lexical Sync] Updating with value:", value);
 
         editor.update(() => {

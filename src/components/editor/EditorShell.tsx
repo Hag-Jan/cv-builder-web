@@ -1,80 +1,34 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import { useResume } from "@/contexts/ResumeContext";
+import AutosaveIndicator from "./AutosaveIndicator";
 
 interface EditorShellProps {
     children: React.ReactNode;
 }
 
-type SaveStatus = "idle" | "unsaved" | "saving" | "saved" | "error";
-
 /**
  * EditorShell — wraps the editor pane and provides:
- * 1. Auto-save with 2s debounce after resume changes
- * 2. Visual save status indicator
- * 3. Cmd+S keyboard shortcut for immediate save
+ * 1. Visual container for the editor
+ * 2. Cmd+S keyboard shortcut for immediate save
+ * 3. Status bar with isolated AutosaveIndicator
  */
 export default function EditorShell({ children }: EditorShellProps) {
-    const { resume, saveResume } = useResume();
-    const [status, setStatus] = useState<SaveStatus>("idle");
-    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const prevResumeRef = useRef<string | null>(null);
-
-    // Detect changes & trigger debounced save
-    useEffect(() => {
-        if (!resume) return;
-
-        // Skip metadata for comparison to avoid infinite loops from updatedAt
-        const { metadata, ...significantResume } = resume;
-        const serialized = JSON.stringify(significantResume);
-
-        // Skip initial load
-        if (prevResumeRef.current === null) {
-            prevResumeRef.current = serialized;
-            return;
-        }
-
-        // No significant change
-        if (serialized === prevResumeRef.current) return;
-
-        prevResumeRef.current = serialized;
-        setStatus("unsaved");
-
-        // Clear previous timer
-        if (timerRef.current) clearTimeout(timerRef.current);
-
-        // Debounce save
-        timerRef.current = setTimeout(async () => {
-            setStatus("saving");
-            try {
-                await saveResume();
-                setStatus("saved");
-                // Reset to idle after showing "Saved"
-                setTimeout(() => setStatus("idle"), 2000);
-            } catch {
-                setStatus("error");
-            }
-        }, 2000);
-
-        return () => {
-            if (timerRef.current) clearTimeout(timerRef.current);
-        };
-    }, [resume, saveResume]);
+    const { saveResume } = useResume();
 
     // Cmd+S / Ctrl+S shortcut
     const handleKeyDown = useCallback(
         async (e: KeyboardEvent) => {
             if ((e.metaKey || e.ctrlKey) && e.key === "s") {
                 e.preventDefault();
-                if (timerRef.current) clearTimeout(timerRef.current);
-                setStatus("saving");
+                // Note: Manual save via Cmd+S won't update the UI status 
+                // in this decoupled model unless we add a shared state.
+                // For now, we rely on the debounced autosave to pick up the change.
                 try {
                     await saveResume();
-                    setStatus("saved");
-                    setTimeout(() => setStatus("idle"), 2000);
                 } catch {
-                    setStatus("error");
+                    // Handled by indicator eventually or silent for shortcut
                 }
             }
         },
@@ -89,8 +43,8 @@ export default function EditorShell({ children }: EditorShellProps) {
     return (
         <div className="flex flex-col h-full">
             {/* Save status bar */}
-            <div className="flex items-center justify-end px-4 py-1.5 border-b border-gray-100 bg-gray-50/50">
-                <SaveStatusIndicator status={status} />
+            <div className="flex items-center justify-end px-4 py-1.5 border-b border-gray-100 bg-gray-50/50 min-h-[30px]">
+                <AutosaveIndicator />
             </div>
 
             {/* Editor content */}
@@ -98,28 +52,5 @@ export default function EditorShell({ children }: EditorShellProps) {
                 {children}
             </div>
         </div>
-    );
-}
-
-// ── Save Status Indicator ────────────────────────────────
-
-function SaveStatusIndicator({ status }: { status: SaveStatus }) {
-    const config: Record<SaveStatus, { label: string; color: string; dot: string }> = {
-        idle: { label: "", color: "text-transparent", dot: "bg-transparent" },
-        unsaved: { label: "Unsaved changes", color: "text-amber-600", dot: "bg-amber-500" },
-        saving: { label: "Saving...", color: "text-blue-600", dot: "bg-blue-500 animate-pulse" },
-        saved: { label: "Saved", color: "text-green-600", dot: "bg-green-500" },
-        error: { label: "Save failed", color: "text-red-600", dot: "bg-red-500" },
-    };
-
-    const { label, color, dot } = config[status];
-
-    if (status === "idle") return null;
-
-    return (
-        <span className={`flex items-center gap-1.5 text-xs font-medium ${color}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
-            {label}
-        </span>
     );
 }

@@ -9,7 +9,7 @@ import type {
     CustomSectionV2 as CustomSection,
     SummarySection,
 } from "@/types/resume-schema-v2";
-import { formatDate } from "@/lib/utils/date-formatter";
+import { formatDate, ensureUrlScheme } from "@/lib/utils/date-formatter";
 
 // ─────────────────────────────────────────────────────────
 // Modern HTML Template — sans-serif + blue accent colors
@@ -52,7 +52,7 @@ export default function ModernHtmlTemplate({ resume }: ModernHtmlTemplateProps) 
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-gray-400 mt-1">
                         {contact.linkedin && (
                             <a
-                                href={contact.linkedin.startsWith("http") ? contact.linkedin : `https://${contact.linkedin}`}
+                                href={ensureUrlScheme(contact.linkedin)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="hover:text-blue-600 transition-colors"
@@ -62,7 +62,7 @@ export default function ModernHtmlTemplate({ resume }: ModernHtmlTemplateProps) 
                         )}
                         {contact.github && (
                             <a
-                                href={contact.github.startsWith("http") ? contact.github : `https://${contact.github}`}
+                                href={ensureUrlScheme(contact.github)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="hover:text-blue-600 transition-colors"
@@ -72,7 +72,7 @@ export default function ModernHtmlTemplate({ resume }: ModernHtmlTemplateProps) 
                         )}
                         {contact.website && (
                             <a
-                                href={contact.website.startsWith("http") ? contact.website : `https://${contact.website}`}
+                                href={ensureUrlScheme(contact.website)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="hover:text-blue-600 transition-colors"

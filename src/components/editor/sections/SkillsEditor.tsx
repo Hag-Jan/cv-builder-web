@@ -1,7 +1,7 @@
 "use client";
 
 import { useResume } from "@/contexts/ResumeContext";
-import { sanitizeSkill } from "@/lib/utils/date-formatter";
+import { sanitizeIntermediate } from "@/lib/utils/date-formatter";
 import type { SkillsSectionV2, SkillCategoryV2 } from "@/types/resume-schema-v2";
 import dynamic from "next/dynamic";
 import { v4 as uuidv4 } from "uuid";
@@ -22,22 +22,31 @@ export function SkillsEditor({ section }: { section: SkillsSectionV2 }) {
             label: "",
             skills: [],
         };
-        updateSection({
-            ...section,
-            categories: [...section.categories, newCategory],
+        updateSection(section.id, (prev) => {
+            const casted = prev as SkillsSectionV2;
+            return {
+                ...casted,
+                categories: [...casted.categories, newCategory],
+            };
         });
     };
 
     const updateCategory = (catId: string, updates: Partial<SkillCategoryV2>) => {
-        const newCats = section.categories.map((cat) =>
-            cat.id === catId ? { ...cat, ...updates } : cat
-        );
-        updateSection({ ...section, categories: newCats });
+        updateSection(section.id, (prev) => {
+            const casted = prev as SkillsSectionV2;
+            const newCats = casted.categories.map((cat) =>
+                cat.id === catId ? { ...cat, ...updates } : cat
+            );
+            return { ...casted, categories: newCats };
+        });
     };
 
     const removeCategory = (catId: string) => {
-        const newCats = section.categories.filter((cat) => cat.id !== catId);
-        updateSection({ ...section, categories: newCats });
+        updateSection(section.id, (prev) => {
+            const casted = prev as SkillsSectionV2;
+            const newCats = casted.categories.filter((cat) => cat.id !== catId);
+            return { ...casted, categories: newCats };
+        });
     };
 
     return (
@@ -86,7 +95,7 @@ export function SkillsEditor({ section }: { section: SkillsSectionV2 }) {
                                 onChange={(skills) =>
                                     updateCategory(cat.id, {
                                         skills: skills
-                                            .map(sanitizeSkill)
+                                            .map(sanitizeIntermediate)
                                             .filter(Boolean),
                                     })
                                 }

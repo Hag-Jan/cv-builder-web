@@ -18,7 +18,7 @@ export function SummaryEditor({ section }: { section: SummarySection }) {
         setError(null);
         try {
             const summary = await generateAisummary(resume);
-            updateSection({ ...section, content: summary });
+            updateSection(section.id, (prev) => ({ ...prev, content: summary } as SummarySection));
         } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to generate summary");
         } finally {
@@ -50,7 +50,7 @@ export function SummaryEditor({ section }: { section: SummarySection }) {
             <div className="relative group">
                 <Textarea
                     value={section.content || ""}
-                    onChange={(e) => updateSection({ ...section, content: e.target.value })}
+                    onChange={(e) => updateSection(section.id, (prev) => ({ ...prev, content: e.target.value } as SummarySection))}
                     className="h-44 p-4 rounded-xl leading-relaxed font-medium"
                     placeholder="Results-driven professional with experience in..."
                 />

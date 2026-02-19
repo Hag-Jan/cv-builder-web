@@ -9,7 +9,7 @@ import type {
     CustomSectionV2 as CustomSection,
     SummarySection
 } from '@/types/resume-schema-v2';
-import { formatDate } from '@/lib/utils/date-formatter';
+import { formatDate, ensureUrlScheme } from '@/lib/utils/date-formatter';
 
 interface ATSBaseTemplateProps {
     resume: Resume;
@@ -45,17 +45,17 @@ export default function ATSBaseTemplate({ resume }: ATSBaseTemplateProps) {
                     </div>
                     <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs mt-2 text-gray-600">
                         {contactSection.linkedin && (
-                            <a href={contactSection.linkedin.startsWith('http') ? contactSection.linkedin : `https://${contactSection.linkedin}`} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 border-b border-transparent hover:border-blue-600 transition-all">
+                            <a href={ensureUrlScheme(contactSection.linkedin)} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 border-b border-transparent hover:border-blue-600 transition-all">
                                 {contactSection.linkedin.replace(/^https?:\/\/(www\.)?/, '')}
                             </a>
                         )}
                         {contactSection.github && (
-                            <a href={contactSection.github.startsWith('http') ? contactSection.github : `https://${contactSection.github}`} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 border-b border-transparent hover:border-blue-600 transition-all">
+                            <a href={ensureUrlScheme(contactSection.github)} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 border-b border-transparent hover:border-blue-600 transition-all">
                                 {contactSection.github.replace(/^https?:\/\/(www\.)?/, '')}
                             </a>
                         )}
                         {contactSection.website && (
-                            <a href={contactSection.website.startsWith('http') ? contactSection.website : `https://${contactSection.website}`} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 border-b border-transparent hover:border-blue-600 transition-all">
+                            <a href={ensureUrlScheme(contactSection.website)} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 border-b border-transparent hover:border-blue-600 transition-all">
                                 {contactSection.website.replace(/^https?:\/\/(www\.)?/, '')}
                             </a>
                         )}

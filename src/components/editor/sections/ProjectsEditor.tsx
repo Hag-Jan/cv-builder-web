@@ -31,22 +31,31 @@ export function ProjectsEditor({ section }: { section: ProjectsSectionV2 }) {
             techStack: [],
             bullets: [],
         };
-        updateSection({
-            ...section,
-            items: [...section.items, newItem],
+        updateSection(section.id, (prev) => {
+            const casted = prev as ProjectsSectionV2;
+            return {
+                ...casted,
+                items: [...casted.items, newItem],
+            };
         });
     };
 
     const updateItem = (itemId: string, updates: Partial<ProjectItemV2>) => {
-        const newItems = section.items.map((item) =>
-            item.id === itemId ? { ...item, ...updates } : item
-        );
-        updateSection({ ...section, items: newItems });
+        updateSection(section.id, (prev) => {
+            const casted = prev as ProjectsSectionV2;
+            const newItems = casted.items.map((item) =>
+                item.id === itemId ? { ...item, ...updates } : item
+            );
+            return { ...casted, items: newItems };
+        });
     };
 
     const removeItem = (itemId: string) => {
-        const newItems = section.items.filter((item) => item.id !== itemId);
-        updateSection({ ...section, items: newItems });
+        updateSection(section.id, (prev) => {
+            const casted = prev as ProjectsSectionV2;
+            const newItems = casted.items.filter((item) => item.id !== itemId);
+            return { ...casted, items: newItems };
+        });
     };
 
     const handleApplySuggestion = (itemId: string, bulletIndex: number, suggestion: string) => {
