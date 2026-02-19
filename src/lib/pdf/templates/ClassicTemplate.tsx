@@ -1,6 +1,15 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
-import type { Resume, ContactSection, ExperienceSection, EducationSection, SkillsSection, CustomSection, ProjectsSection } from '@/types/resume-schema-v1';
+import type {
+    ResumeV2 as Resume,
+    ContactSectionV2 as ContactSection,
+    ExperienceSectionV2 as ExperienceSection,
+    EducationSectionV2 as EducationSection,
+    SkillsSectionV2 as SkillsSection,
+    ProjectsSectionV2 as ProjectsSection,
+    CustomSectionV2 as CustomSection,
+    SummarySection
+} from '@/types/resume-schema-v2';
 
 const styles = StyleSheet.create({
     page: {
@@ -37,17 +46,36 @@ const styles = StyleSheet.create({
     experienceItem: {
         marginBottom: 10,
     },
+    roleRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'baseline',
+    },
     role: {
         fontSize: 10,
         fontWeight: 'bold',
     },
+    companyRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'baseline',
+        marginBottom: 4,
+    },
     company: {
         fontSize: 10,
+        fontStyle: 'italic',
     },
     dateRange: {
         fontSize: 9,
         color: '#333333',
-        marginBottom: 4,
+    },
+    location: {
+        fontSize: 9,
+        color: '#666666',
+    },
+    summaryText: {
+        fontSize: 10,
+        lineHeight: 1.4,
     },
     educationItem: {
         marginBottom: 8,
@@ -68,6 +96,18 @@ const styles = StyleSheet.create({
     },
     skillContent: {
         fontSize: 10,
+    },
+    projectHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'baseline',
+        marginBottom: 2,
+    },
+    techStack: {
+        fontSize: 8,
+        fontWeight: 'bold',
+        color: '#444444',
+        marginBottom: 2,
     },
     customContent: {
         fontSize: 10,
@@ -108,10 +148,16 @@ const ClassicTemplate = ({ resume }: ClassicTemplateProps) => {
                     <View style={styles.header}>
                         <Text style={styles.name}>{contactSection.name}</Text>
                         <View style={styles.contactInfo}>
-                            <Text>{contactSection.email}</Text>
-                            {contactSection.phone && <Text>{contactSection.phone}</Text>}
-                            {contactSection.location && <Text>{contactSection.location}</Text>}
-                            {contactSection.portfolio && <Text>{contactSection.portfolio}</Text>}
+                            <Text>{[contactSection.email, contactSection.phone, contactSection.location].filter(Boolean).join('  •  ')}</Text>
+                            {(contactSection.linkedin || contactSection.github || contactSection.website) && (
+                                <Text style={{ color: '#444444' }}>
+                                    {[
+                                        contactSection.linkedin?.replace(/^https?:\/\//, ''),
+                                        contactSection.github?.replace(/^https?:\/\//, ''),
+                                        contactSection.website?.replace(/^https?:\/\//, '')
+                                    ].filter(Boolean).join('  •  ')}
+                                </Text>
+                            )}
                         </View>
                     </View>
                 )}
@@ -122,17 +168,30 @@ const ClassicTemplate = ({ resume }: ClassicTemplateProps) => {
 
                     return (
                         <View key={section.id} style={styles.section} wrap={true}>
+                            {/* Summary Section */}
+                            {section.type === 'summary' && (
+                                <>
+                                    <Text style={styles.sectionTitle}>Summary</Text>
+                                    <Text style={styles.summaryText}>{(section as SummarySection).content}</Text>
+                                </>
+                            )}
+
                             {/* Experience Section */}
                             {section.type === 'experience' && (
                                 <>
                                     <Text style={styles.sectionTitle}>Experience</Text>
                                     {(section as ExperienceSection).items.map((item) => (
                                         <View key={item.id} style={styles.experienceItem}>
-                                            <Text style={styles.role}>{item.role}</Text>
-                                            <Text style={styles.company}>{item.company}</Text>
-                                            <Text style={styles.dateRange}>
-                                                {item.startDate} - {item.endDate || 'Present'}
-                                            </Text>
+                                            <View style={styles.roleRow}>
+                                                <Text style={styles.role}>{item.role}</Text>
+                                                <Text style={styles.dateRange}>
+                                                    {item.startDate} - {item.endDate || 'Present'}
+                                                </Text>
+                                            </View>
+                                            <View style={styles.companyRow}>
+                                                <Text style={styles.company}>{item.company}</Text>
+                                                {item.location && <Text style={styles.location}>{item.location}</Text>}
+                                            </View>
                                             {item.bullets && item.bullets.length > 0 && (
                                                 <View style={styles.bulletList}>
                                                     {item.bullets.map((bullet, idx) => (
@@ -154,9 +213,16 @@ const ClassicTemplate = ({ resume }: ClassicTemplateProps) => {
                                     <Text style={styles.sectionTitle}>Education</Text>
                                     {(section as EducationSection).items.map((item) => (
                                         <View key={item.id} style={styles.educationItem}>
-                                            <Text style={styles.school}>{item.school}</Text>
+                                            <View style={styles.roleRow}>
+                                                <Text style={styles.school}>{item.school}</Text>
+                                                <Text style={styles.dateRange}>{item.date}</Text>
+                                            </View>
                                             <Text style={styles.degree}>{item.degree}</Text>
-                                            <Text style={styles.dateRange}>{item.date}</Text>
+                                            {(item.gpa || item.honors) && (
+                                                <Text style={styles.dateRange}>
+                                                    {[item.gpa && `GPA: ${item.gpa}`, item.honors].filter(Boolean).join(' | ')}
+                                                </Text>
+                                            )}
                                         </View>
                                     ))}
                                 </>
@@ -181,12 +247,25 @@ const ClassicTemplate = ({ resume }: ClassicTemplateProps) => {
                                     <Text style={styles.sectionTitle}>Projects</Text>
                                     {(section as ProjectsSection).items.map((item) => (
                                         <View key={item.id} style={styles.experienceItem}>
-                                            <Text style={styles.role}>{item.name}</Text>
-                                            {item.link && (
-                                                <Text style={styles.dateRange}>{item.link}</Text>
+                                            <View style={styles.projectHeader}>
+                                                <Text style={styles.role}>{item.name}</Text>
+                                                {item.link && <Text style={styles.dateRange}>{item.link.replace(/^https?:\/\//, '')}</Text>}
+                                            </View>
+                                            {item.techStack && item.techStack.length > 0 && (
+                                                <Text style={styles.techStack}>Tech Stack: {item.techStack.join(', ')}</Text>
                                             )}
                                             {item.description && (
                                                 <Text style={styles.bulletText}>{item.description}</Text>
+                                            )}
+                                            {item.bullets && item.bullets.length > 0 && (
+                                                <View style={styles.bulletList}>
+                                                    {item.bullets.map((bullet, idx) => (
+                                                        <View key={idx} style={styles.bulletItem}>
+                                                            <Text style={styles.bulletPoint}>•</Text>
+                                                            <Text style={styles.bulletText}>{bullet}</Text>
+                                                        </View>
+                                                    ))}
+                                                </View>
                                             )}
                                         </View>
                                     ))}

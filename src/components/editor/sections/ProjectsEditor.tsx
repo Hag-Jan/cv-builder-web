@@ -1,18 +1,34 @@
 "use client";
 
 import { useResume } from "@/contexts/ResumeContext";
-import { ProjectsSection, ProjectItem } from "@/types/resume-schema-v1";
+import { useATS } from "@/contexts/ATSContext";
+import { useAuth } from "@/contexts/AuthContext";
+import type { ProjectsSectionV2, ProjectItemV2 } from "@/types/resume-schema-v2";
 import { v4 as uuidv4 } from "uuid";
+import { Plus, Trash2, FolderGit2, Link as LinkIcon, Code2, ListTodo, Sparkles } from "lucide-react";
+import dynamic from "next/dynamic";
+import { useState } from "react";
+import { AISuggestionsPopover } from "@/components/ai/AISuggestionsPopover";
 
-export function ProjectsEditor({ section }: { section: ProjectsSection }) {
+const LexicalRichText = dynamic(() => import("../LexicalRichText").then((mod) => mod.LexicalRichText), {
+    ssr: false,
+    loading: () => <div className="h-[100px] border rounded bg-gray-50 flex items-center justify-center text-gray-400">Loading editor...</div>
+});
+
+export function ProjectsEditor({ section }: { section: ProjectsSectionV2 }) {
     const { updateSection } = useResume();
+    const { atsResult, jobDescription } = useATS();
+    const { user } = useAuth();
+    const [showAIPopover, setShowAIPopover] = useState<{ itemId: string; bulletIndex: number } | null>(null);
 
     const handleAddItem = () => {
-        const newItem: ProjectItem = {
+        const newItem: ProjectItemV2 = {
             id: uuidv4(),
             name: "",
             description: "",
             link: "",
+            techStack: [],
+            bullets: [],
         };
         updateSection({
             ...section,
@@ -20,7 +36,7 @@ export function ProjectsEditor({ section }: { section: ProjectsSection }) {
         });
     };
 
-    const updateItem = (itemId: string, updates: Partial<ProjectItem>) => {
+    const updateItem = (itemId: string, updates: Partial<ProjectItemV2>) => {
         const newItems = section.items.map((item) =>
             item.id === itemId ? { ...item, ...updates } : item
         );
@@ -32,67 +48,130 @@ export function ProjectsEditor({ section }: { section: ProjectsSection }) {
         updateSection({ ...section, items: newItems });
     };
 
+    const handleApplySuggestion = (itemId: string, bulletIndex: number, suggestion: string) => {
+        const item = section.items.find((i) => i.id === itemId);
+        if (!item) return;
+
+        const newBullets = [...(item.bullets || [])];
+        newBullets[bulletIndex] = suggestion;
+        updateItem(itemId, { bullets: newBullets });
+        setShowAIPopover(null);
+    };
+
+    const hasATSResults = atsResult && atsResult.missingKeywords.length > 0 && jobDescription;
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center border-b pb-2">
-                <h3 className="text-lg font-semibold">Projects</h3>
+                <h3 className="text-lg font-semibold text-gray-800">Projects</h3>
                 <button
                     onClick={handleAddItem}
-                    className="text-sm bg-blue-50 text-blue-600 px-3 py-1 rounded hover:bg-blue-100 transition-colors"
+                    className="flex items-center gap-1.5 text-sm bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors shadow-sm"
                 >
-                    + Add Project
+                    <Plus size={16} />
+                    Add Project
                 </button>
             </div>
 
             {section.items.length === 0 && (
-                <p className="text-gray-500 text-sm italic text-center py-4">No projects added yet.</p>
+                <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-lg">
+                    <FolderGit2 className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500 text-sm font-medium">No projects added yet</p>
+                    <button onClick={handleAddItem} className="mt-2 text-blue-600 text-sm hover:underline font-medium">Add your first project</button>
+                </div>
             )}
 
             <div className="space-y-4">
                 {section.items.map((item) => (
-                    <div key={item.id} className="border p-4 rounded bg-white shadow-sm space-y-4 group transition-all hover:border-blue-200">
-                        <div className="flex justify-between items-center">
-                            <h4 className="font-medium text-gray-700">Project Details</h4>
-                            <button
-                                onClick={() => removeItem(item.id)}
-                                className="text-red-500 text-xs hover:underline opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                                Remove
+                    <div key={item.id} className="border border-gray-200 rounded-lg bg-white shadow-sm overflow-hidden group">
+                        <div className="bg-gray-50/50 px-4 py-2 border-b border-gray-100 flex justify-between items-center">
+                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Project Details</span>
+                            <button onClick={() => removeItem(item.id)} className="text-gray-400 hover:text-red-500 transition-colors">
+                                <Trash2 size={16} />
                             </button>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="md:col-span-1">
-                                <label className="block text-xs font-medium text-gray-500 mb-1">Project Name</label>
-                                <input
-                                    value={item.name}
-                                    onChange={(e) => updateItem(item.id, { name: e.target.value })}
-                                    className="w-full border p-2 rounded text-sm focus:ring-1 focus:ring-blue-500 outline-none"
-                                    placeholder="e.g. Portfolio Website"
-                                />
+                        <div className="p-4 space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-xs font-semibold text-gray-600 uppercase tracking-tight">Project Name</label>
+                                    <input
+                                        value={item.name}
+                                        onChange={(e) => updateItem(item.id, { name: e.target.value })}
+                                        className="w-full border border-gray-300 p-2 rounded text-sm focus:ring-1 focus:ring-blue-500 outline-none"
+                                        placeholder="E-commerce Platform"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-semibold text-gray-600 uppercase tracking-tight flex items-center gap-1">
+                                        <LinkIcon size={10} /> Project Link
+                                    </label>
+                                    <input
+                                        value={item.link || ""}
+                                        onChange={(e) => updateItem(item.id, { link: e.target.value })}
+                                        className="w-full border border-gray-300 p-2 rounded text-sm focus:ring-1 focus:ring-blue-500 outline-none"
+                                        placeholder="https://github.com/..."
+                                    />
+                                </div>
+                                <div className="md:col-span-2 space-y-1">
+                                    <label className="text-xs font-semibold text-gray-600 uppercase tracking-tight flex items-center gap-1">
+                                        <Code2 size={10} /> Tech Stack (comma separated)
+                                    </label>
+                                    <input
+                                        value={item.techStack?.join(", ") || ""}
+                                        onChange={(e) => updateItem(item.id, { techStack: e.target.value.split(",").map(t => t.trim()).filter(Boolean) })}
+                                        className="w-full border border-gray-300 p-2 rounded text-sm focus:ring-1 focus:ring-blue-500 outline-none"
+                                        placeholder="Next.js, Tailwind, TypeScript"
+                                    />
+                                </div>
                             </div>
-                            <div className="md:col-span-1">
-                                <label className="block text-xs font-medium text-gray-500 mb-1">Link (Optional)</label>
-                                <input
-                                    value={item.link || ""}
-                                    onChange={(e) => updateItem(item.id, { link: e.target.value })}
-                                    className="w-full border p-2 rounded text-sm focus:ring-1 focus:ring-blue-500 outline-none"
-                                    placeholder="https://github.com/..."
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-semibold text-gray-600 uppercase tracking-tight flex items-center gap-1">
+                                    <ListTodo size={10} /> Key Accomplishments
+                                </label>
+                                <LexicalRichText
+                                    initialValue={item.bullets || []}
+                                    onChange={(bullets) => updateItem(item.id, { bullets })}
+                                    placeholder="• Built a custom..."
                                 />
-                            </div>
-                            <div className="md:col-span-2">
-                                <label className="block text-xs font-medium text-gray-500 mb-1">Description</label>
-                                <textarea
-                                    value={item.description || ""}
-                                    onChange={(e) => updateItem(item.id, { description: e.target.value })}
-                                    className="w-full border p-2 rounded text-sm focus:ring-1 focus:ring-blue-500 outline-none min-h-[80px] resize-y"
-                                    placeholder="Briefly describe what you built and the technologies used..."
-                                />
+
+                                {hasATSResults && item.bullets && item.bullets.length > 0 && (
+                                    <div className="mt-3 space-y-2 bg-purple-50/50 p-3 rounded-md border border-purple-100">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <Sparkles size={14} className="text-purple-600" />
+                                            <p className="text-xs font-bold text-gray-700 uppercase tracking-wider">AI Suggestions</p>
+                                        </div>
+                                        {item.bullets.map((bullet, index) => (
+                                            <div key={index} className="flex items-center gap-2 bg-white p-2 rounded border border-purple-100">
+                                                <span className="text-[11px] text-gray-600 flex-1 line-clamp-1 italic">{bullet}</span>
+                                                <button
+                                                    onClick={() => setShowAIPopover({ itemId: item.id, bulletIndex: index })}
+                                                    className="flex items-center gap-1 bg-purple-600 text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase hover:bg-purple-700 transition-all"
+                                                >
+                                                    <Sparkles className="w-2.5 h-2.5" />
+                                                    Improve
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
                 ))}
             </div>
+
+            {showAIPopover && user && hasATSResults && (
+                <AISuggestionsPopover
+                    originalText={section.items.find(i => i.id === showAIPopover.itemId)?.bullets?.[showAIPopover.bulletIndex] || ""}
+                    jobDescription={jobDescription}
+                    missingKeywords={atsResult.missingKeywords}
+                    onApply={(suggestion) => handleApplySuggestion(showAIPopover.itemId, showAIPopover.bulletIndex, suggestion)}
+                    onClose={() => setShowAIPopover(null)}
+                    userId={user.uid}
+                />
+            )}
         </div>
     );
 }

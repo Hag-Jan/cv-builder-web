@@ -5,120 +5,114 @@ import { AIImproveRequest, AIImproveResponse } from "@/types/ai-types";
 // Initialize Gemini API
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
-// Temporary in-memory usage tracking for MVP (will reset on server restart)
+// Simple usage tracking (in-memory for MVP - reset on restart)
 const usageTracker = new Map<string, number>();
-const MAX_FREE_CALLS = 3;
+const MAX_FREE_CALLS = 10; // Increased for development/testing
 
 export async function POST(request: NextRequest) {
     try {
+        const apiKey = process.env.GEMINI_API_KEY;
+        if (!apiKey) {
+            return NextResponse.json(
+                { error: "AI API Key not configured. Please add GEMINI_API_KEY to your environment." },
+                { status: 500 }
+            );
+        }
+
         // Parse request body
         const body: AIImproveRequest = await request.json();
-        const { text, jobDescription, missingKeywords } = body;
+        const { text: originalBullet, jobDescription, missingKeywords } = body;
 
         // Validate input
-        if (!text || !jobDescription) {
+        if (!originalBullet) {
             return NextResponse.json(
-                { error: "Missing required fields: text and jobDescription" },
+                { error: "Missing bullet text to improve." },
                 { status: 400 }
             );
         }
 
-        // Simple usage tracking (in-memory for MVP)
+        // Simple usage tracking
         const userId = request.headers.get("x-user-id") || "anonymous";
         const currentUsage = usageTracker.get(userId) || 0;
 
         if (currentUsage >= MAX_FREE_CALLS) {
             return NextResponse.json(
-                { error: "Free usage limit reached (3 calls). Upgrade to premium for unlimited access." },
+                { error: "Usage limit reached. Upgrade for more AI optimizations." },
                 { status: 403 }
             );
         }
 
-        // Prepare AI prompt with STAR method  
-        const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+        // Use the latest flash model for speed and quality
+        const model = genAI.getGenerativeModel({
+            model: "gemini-2.0-flash",
+            generationConfig: {
+                temperature: 0.8,
+                maxOutputTokens: 500,
+            }
+        });
 
-        const prompt = `You are an expert resume writer specializing in ATS optimization and the STAR method.
-
-TASK: Improve this resume bullet point by:
-1. Following the STAR method (Situation, Task, Action, Result)
-2. Adding measurable impact with specific numbers or percentages
-3. Naturally incorporating these missing keywords: ${missingKeywords.join(", ")}
-4. Using strong action verbs
-5. Keeping each suggestion under 25 words
-6. Making the bullet ATS-friendly
+        const prompt = `You are an elite resume strategist and STAR method expert.
+Your goal is to transform a mediocre resume bullet into 3 high-impact, ATS-optimized versions.
 
 ORIGINAL BULLET:
-"${text}"
+"${originalBullet}"
 
-JOB DESCRIPTION CONTEXT:
-${jobDescription.substring(0, 500)}...
+${jobDescription ? `TARGET JOB DESCRIPTION (for context):\n${jobDescription.substring(0, 1000)}` : ""}
+
+${missingKeywords?.length ? `INTEGRATE THESE KEYWORDS (naturally):\n${missingKeywords.join(", ")}` : ""}
+
+STRATEGY:
+1. Version 1 (Metric-Focused): Emphasize quantifiable results ($, %, #).
+2. Version 2 (Action-Focused): Use strong, varied action verbs (e.g., Spearheaded, Orchestrated, Optimized).
+3. Version 3 (Skill-Focused): Highlight technical proficiency and domain expertise.
 
 REQUIREMENTS:
-- Generate exactly 3 diverse improved versions
-- Each must include at least 2-3 of the missing keywords naturally
-- Include quantifiable metrics (numbers, percentages, etc.)
-- Use different action verbs for variety
-- Format as a simple JSON array of strings
-- Do not include bullet points (•) in the output
+- Strictly follow the STAR (Situation, Task, Action, Result) structure.
+- Each bullet must be concise (one sentence, ~15-25 words).
+- Use professional, high-energy language.
+- DO NOT use placeholders like "[XX%]" or "[Metric]". Invent plausible metrics based on the context if none are provided, but keep them realistic.
+- DO NOT include bullet points or quotes in the strings.
 
-Return ONLY a valid JSON array with exactly 3 strings, nothing else. Example format:
-["suggestion 1", "suggestion 2", "suggestion 3"]`;
+OUTPUT FORMAT:
+Return ONLY a valid JSON array of exactly 3 strings.
+
+Example:
+["Spearheaded a cross-functional team to reduce deployment latency by 40% using Kubernetes and Docker.", "Optimized cloud infrastructure which resulted in a 15% reduction in monthly AWS expenditure.", "Architected a scalable microservices layer that improved system uptime to 99.9% for 50k+ active users."]`;
 
         const result = await model.generateContent(prompt);
         const response = result.response;
-
-        // Add safety checks
-        if (!response) {
-            console.error("No response from Gemini API");
-            return NextResponse.json(
-                { error: "Failed to get response from AI model" },
-                { status: 500 }
-            );
-        }
-
         const responseText = response.text();
-        console.log("Gemini response:", responseText);
 
-        // Parse JSON response
+        // Clean up response text to ensure it's valid JSON
+        const cleanedText = responseText.replace(/```json\n?|```/g, "").trim();
         let suggestions: string[];
+
         try {
-            // Clean up the response (remove markdown code blocks if present)
-            const cleanedText = responseText
-                .replace(/```json\n?/g, "")
-                .replace(/```\n?/g, "")
-                .trim();
-
             suggestions = JSON.parse(cleanedText);
-
-            // Validate we got exactly 3 suggestions
             if (!Array.isArray(suggestions) || suggestions.length !== 3) {
-                console.error("Invalid suggestions array:", suggestions);
-                throw new Error("Invalid number of suggestions");
+                throw new Error("Invalid suggestions format");
             }
-        } catch (parseError) {
-            console.error("Failed to parse AI response:", responseText, parseError);
+        } catch (e) {
+            console.error("AI Response Parsing Error:", responseText);
             return NextResponse.json(
-                { error: "Failed to generate valid suggestions. Please try again." },
+                { error: "Failed to parse AI suggestions. Please try again." },
                 { status: 500 }
             );
         }
 
-        // Increment usage count (in-memory)
+        // Update usage
         usageTracker.set(userId, currentUsage + 1);
         const remainingCalls = MAX_FREE_CALLS - (currentUsage + 1);
 
-        // Return suggestions
-        const responseData: AIImproveResponse = {
+        return NextResponse.json({
             suggestions,
-            remainingCalls,
-        };
-
-        return NextResponse.json(responseData);
+            remainingCalls
+        } as AIImproveResponse);
 
     } catch (error) {
-        console.error("AI Improve API error:", error);
+        console.error("AI Improvement Error:", error);
         return NextResponse.json(
-            { error: error instanceof Error ? error.message : "Internal server error" },
+            { error: error instanceof Error ? error.message : "An unexpected error occurred." },
             { status: 500 }
         );
     }

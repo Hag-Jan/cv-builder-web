@@ -1,6 +1,15 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
-import type { Resume, ContactSection, ExperienceSection, EducationSection, SkillsSection, CustomSection, ProjectsSection } from '@/types/resume-schema-v1';
+import type {
+    ResumeV2 as Resume,
+    ContactSectionV2 as ContactSection,
+    ExperienceSectionV2 as ExperienceSection,
+    EducationSectionV2 as EducationSection,
+    SkillsSectionV2 as SkillsSection,
+    ProjectsSectionV2 as ProjectsSection,
+    CustomSectionV2 as CustomSection,
+    SummarySection
+} from '@/types/resume-schema-v2';
 
 const styles = StyleSheet.create({
     page: {
@@ -43,12 +52,28 @@ const styles = StyleSheet.create({
         borderLeftWidth: 4,
         borderLeftColor: '#000000',
     },
+    summaryText: {
+        fontSize: 10,
+        lineHeight: 1.4,
+        marginBottom: 4,
+    },
     experienceItem: {
         marginBottom: 12,
+    },
+    roleRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'baseline',
     },
     role: {
         fontSize: 11,
         fontWeight: 'bold',
+    },
+    companyRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'baseline',
+        marginBottom: 4,
     },
     company: {
         fontSize: 11,
@@ -57,7 +82,10 @@ const styles = StyleSheet.create({
     dateRange: {
         fontSize: 10,
         color: '#4b5563',
-        marginBottom: 4,
+    },
+    location: {
+        fontSize: 9,
+        color: '#6B7280',
     },
     educationItem: {
         marginBottom: 10,
@@ -78,6 +106,18 @@ const styles = StyleSheet.create({
     },
     skillContent: {
         fontSize: 10,
+    },
+    projectHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'baseline',
+        marginBottom: 2,
+    },
+    techStack: {
+        fontSize: 9,
+        fontWeight: 'bold',
+        color: '#3B82F6',
+        marginBottom: 2,
     },
     customContent: {
         fontSize: 10,
@@ -122,8 +162,14 @@ const ModernTemplate = ({ resume }: ModernTemplateProps) => {
                             <Text>{contactSection.email}</Text>
                             {contactSection.phone && <Text> • {contactSection.phone}</Text>}
                             {contactSection.location && <Text> • {contactSection.location}</Text>}
-                            {contactSection.portfolio && <Text> • {contactSection.portfolio}</Text>}
                         </View>
+                        {(contactSection.linkedin || contactSection.github || contactSection.website) && (
+                            <View style={[styles.contactInfo, { marginTop: 4 }]}>
+                                {contactSection.linkedin && <Text>{contactSection.linkedin.replace(/^https?:\/\//, '')}</Text>}
+                                {contactSection.github && <Text>{contactSection.github.replace(/^https?:\/\//, '')}</Text>}
+                                {contactSection.website && <Text>{contactSection.website.replace(/^https?:\/\//, '')}</Text>}
+                            </View>
+                        )}
                     </View>
                 )}
 
@@ -133,17 +179,30 @@ const ModernTemplate = ({ resume }: ModernTemplateProps) => {
 
                     return (
                         <View key={section.id} style={styles.section} wrap={true}>
+                            {/* Summary Section */}
+                            {section.type === 'summary' && (
+                                <>
+                                    <Text style={styles.sectionTitle}>Summary</Text>
+                                    <Text style={styles.summaryText}>{(section as SummarySection).content}</Text>
+                                </>
+                            )}
+
                             {/* Experience Section */}
                             {section.type === 'experience' && (
                                 <>
                                     <Text style={styles.sectionTitle}>Professional Experience</Text>
                                     {(section as ExperienceSection).items.map((item) => (
                                         <View key={item.id} style={styles.experienceItem}>
-                                            <Text style={styles.role}>{item.role}</Text>
-                                            <Text style={styles.company}>{item.company}</Text>
-                                            <Text style={styles.dateRange}>
-                                                {item.startDate} — {item.endDate || 'Present'}
-                                            </Text>
+                                            <View style={styles.roleRow}>
+                                                <Text style={styles.role}>{item.role}</Text>
+                                                <Text style={styles.dateRange}>
+                                                    {item.startDate} — {item.endDate || 'Present'}
+                                                </Text>
+                                            </View>
+                                            <View style={styles.companyRow}>
+                                                <Text style={styles.company}>{item.company}</Text>
+                                                {item.location && <Text style={styles.location}>{item.location}</Text>}
+                                            </View>
                                             {item.bullets && item.bullets.length > 0 && (
                                                 <View style={styles.bulletList}>
                                                     {item.bullets.map((bullet, idx) => (
@@ -165,9 +224,16 @@ const ModernTemplate = ({ resume }: ModernTemplateProps) => {
                                     <Text style={styles.sectionTitle}>Education</Text>
                                     {(section as EducationSection).items.map((item) => (
                                         <View key={item.id} style={styles.educationItem}>
-                                            <Text style={styles.school}>{item.school}</Text>
+                                            <View style={styles.roleRow}>
+                                                <Text style={styles.school}>{item.school}</Text>
+                                                <Text style={styles.dateRange}>{item.date}</Text>
+                                            </View>
                                             <Text style={styles.degree}>{item.degree}</Text>
-                                            <Text style={styles.dateRange}>{item.date}</Text>
+                                            {(item.gpa || item.honors) && (
+                                                <Text style={styles.dateRange}>
+                                                    {[item.gpa && `GPA: ${item.gpa}`, item.honors].filter(Boolean).join(' | ')}
+                                                </Text>
+                                            )}
                                         </View>
                                     ))}
                                 </>
@@ -192,12 +258,25 @@ const ModernTemplate = ({ resume }: ModernTemplateProps) => {
                                     <Text style={styles.sectionTitle}>Projects</Text>
                                     {(section as ProjectsSection).items.map((item) => (
                                         <View key={item.id} style={styles.experienceItem}>
-                                            <Text style={styles.role}>{item.name}</Text>
-                                            {item.link && (
-                                                <Text style={styles.dateRange}>{item.link}</Text>
+                                            <View style={styles.projectHeader}>
+                                                <Text style={styles.role}>{item.name}</Text>
+                                                {item.link && <Text style={styles.dateRange}>{item.link.replace(/^https?:\/\//, '')}</Text>}
+                                            </View>
+                                            {item.techStack && item.techStack.length > 0 && (
+                                                <Text style={styles.techStack}>{item.techStack.join(' / ')}</Text>
                                             )}
                                             {item.description && (
                                                 <Text style={styles.bulletText}>{item.description}</Text>
+                                            )}
+                                            {item.bullets && item.bullets.length > 0 && (
+                                                <View style={styles.bulletList}>
+                                                    {item.bullets.map((bullet, idx) => (
+                                                        <View key={idx} style={styles.bulletItem}>
+                                                            <Text style={styles.bulletPoint}>•</Text>
+                                                            <Text style={styles.bulletText}>{bullet}</Text>
+                                                        </View>
+                                                    ))}
+                                                </View>
                                             )}
                                         </View>
                                     ))}

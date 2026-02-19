@@ -4,8 +4,10 @@ import {
     extractKeywords,
     extractResumeText,
     matchKeywords,
-    calculateScore,
+    calculateDeterministicScore,
     detectWarnings,
+    analyzeBullets,
+    getTopImpactFixes,
 } from "@/lib/ats/ats-analyzer";
 
 export async function POST(request: NextRequest) {
@@ -13,7 +15,6 @@ export async function POST(request: NextRequest) {
         const body: ATSAnalysisRequest = await request.json();
         const { resume, jobDescription } = body;
 
-        // Validate inputs
         if (!resume) {
             return NextResponse.json(
                 { error: "Resume data is required" },
@@ -31,7 +32,6 @@ export async function POST(request: NextRequest) {
         // Extract keywords from job description
         const jobKeywords = extractKeywords(jobDescription);
 
-        // If no meaningful keywords found
         if (jobKeywords.length === 0) {
             return NextResponse.json(
                 {
@@ -47,18 +47,31 @@ export async function POST(request: NextRequest) {
         // Match keywords
         const { matched, missing } = matchKeywords(resumeText, jobKeywords);
 
-        // Calculate score
-        const score = calculateScore(matched.length, jobKeywords.length);
+        // Analyze bullets deterministically
+        const bulletAnalysis = analyzeBullets(resume);
+
+        // Calculate enhanced deterministic score
+        const { finalScore, delta } = calculateDeterministicScore(
+            matched.length,
+            jobKeywords.length,
+            bulletAnalysis
+        );
+
+        // Generate Top 3 Impact Fixes
+        const topImpactFixes = getTopImpactFixes(missing, bulletAnalysis);
 
         // Detect warnings
         const warnings = detectWarnings(resume, matched);
 
         // Build response
         const response: ATSAnalysisResponse = {
-            score,
+            score: finalScore,
             matchedKeywords: matched,
             missingKeywords: missing,
             warnings,
+            bulletAnalysis,
+            scoreDelta: delta,
+            topImpactFixes,
         };
 
         return NextResponse.json(response);

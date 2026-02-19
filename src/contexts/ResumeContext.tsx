@@ -1,21 +1,23 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { Resume, ResumeSection } from "@/types/resume-schema-v1";
 import { useAuth } from "@/contexts/AuthContext";
-import { auth, db } from "@/lib/firebase.client";
+import { db } from "@/lib/firebase.client";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-
 import { v4 as uuidv4 } from "uuid";
 
+// Import Schema v2
+import type { ResumeV2, ResumeSectionV2 } from "@/types/resume-schema-v2";
+import { migrateV1toV2, isV1Resume } from "@/lib/schema/migrate-v1-to-v2";
+
 interface ResumeContextType {
-    resume: Resume | null;
+    resume: ResumeV2 | null;
     loading: boolean;
-    updateSection: (section: ResumeSection) => void;
-    addSection: (type: ResumeSection["type"]) => void;
+    updateSection: (section: ResumeSectionV2) => void;
+    addSection: (type: ResumeSectionV2["type"]) => void;
     removeSection: (id: string) => void;
     saveResume: () => Promise<void>;
-    updateTemplate: (templateId: Resume["templateId"]) => void;
+    updateTemplate: (templateId: string) => void;
 }
 
 const ResumeContext = createContext<ResumeContextType | null>(null);
@@ -26,26 +28,27 @@ export const useResume = () => {
     return context;
 };
 
-const INITIAL_RESUME: Resume = {
+const INITIAL_RESUME_V2: ResumeV2 = {
     resumeId: "",
-    schemaVersion: "1.0",
+    schemaVersion: "2.0",
     templateId: "classic",
     metadata: {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
     },
     sections: [
-        { id: "contact", type: "contact", order: 0, name: "", email: "" },
-        { id: "edu", type: "education", order: 1, items: [] },
-        { id: "exp", type: "experience", order: 2, items: [] },
-        { id: "projects", type: "projects", order: 3, items: [] },
-        { id: "skills", type: "skills", order: 4, categories: [] },
+        { id: "summary", type: "summary", order: 0, content: "" },
+        { id: "contact", type: "contact", order: 1, name: "", email: "" },
+        { id: "edu", type: "education", order: 2, items: [] },
+        { id: "exp", type: "experience", order: 3, items: [] },
+        { id: "projects", type: "projects", order: 4, items: [] },
+        { id: "skills", type: "skills", order: 5, categories: [] },
     ],
 };
 
 export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
     const { user } = useAuth();
-    const [resume, setResume] = useState<Resume | null>(null);
+    const [resume, setResume] = useState<ResumeV2 | null>(null);
     const [loading, setLoading] = useState(true);
 
     // Load Resume
@@ -61,15 +64,25 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
                 const docSnap = await getDoc(docRef);
 
                 if (docSnap.exists()) {
-                    setResume(docSnap.data() as Resume);
+                    const data = docSnap.data();
+
+                    // Handle Migration v1 -> v2
+                    if (isV1Resume(data)) {
+                        console.log("Migrating resume from v1 to v2...");
+                        const migrated = migrateV1toV2(data);
+                        setResume(migrated);
+                        // Optional: save migrated version immediately? 
+                        // For now we'll let the user's first edit save it.
+                    } else {
+                        setResume(data as ResumeV2);
+                    }
                 } else {
-                    const newResume: Resume = {
-                        ...INITIAL_RESUME,
+                    const newResume: ResumeV2 = {
+                        ...INITIAL_RESUME_V2,
                         resumeId: user.uid,
-                        sections: INITIAL_RESUME.sections.map(s => ({ ...s }))
+                        sections: INITIAL_RESUME_V2.sections.map(s => ({ ...s }))
                     };
                     setResume(newResume);
-                    // Optional: Auto-save initial state?
                 }
             } catch (error) {
                 console.error("Error loading resume:", error);
@@ -81,7 +94,7 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
         loadResume();
     }, [user]);
 
-    const updateSection = useCallback((updatedSection: ResumeSection) => {
+    const updateSection = useCallback((updatedSection: ResumeSectionV2) => {
         setResume((prev) => {
             if (!prev) return null;
             const newSections = prev.sections.map((s) =>
@@ -91,20 +104,25 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
         });
     }, []);
 
-    const addSection = useCallback((type: ResumeSection["type"]) => {
+    const addSection = useCallback((type: ResumeSectionV2["type"]) => {
         setResume((prev) => {
             if (!prev) return null;
-            const newSection: ResumeSection = {
+
+            // Calculate next order
+            const maxOrder = prev.sections.reduce((max, s) => Math.max(max, s.order), -1);
+
+            const newSection: ResumeSectionV2 = {
                 id: uuidv4(),
                 type,
-                order: prev.sections.length,
+                order: maxOrder + 1,
                 ...(type === "experience" ? { items: [] } : {}),
                 ...(type === "education" ? { items: [] } : {}),
                 ...(type === "skills" ? { categories: [] } : {}),
                 ...(type === "projects" ? { items: [] } : {}),
                 ...(type === "custom" ? { title: "New Section", content: [] } : {}),
-                ...(type === "contact" ? { name: "", email: "" } : {}), // Should exist only once usually
-            } as ResumeSection;
+                ...(type === "contact" ? { name: "", email: "" } : {}),
+                ...(type === "summary" ? { content: "" } : {}),
+            } as ResumeSectionV2;
 
             return { ...prev, sections: [...prev.sections, newSection] };
         });
@@ -118,23 +136,55 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
     }, []);
 
     const saveResume = useCallback(async () => {
-        if (!resume || !user) return;
-        const toSave: Resume = {
+        if (!resume) return;
+
+        const toSave: ResumeV2 = {
             ...resume,
             metadata: { ...resume.metadata, updatedAt: new Date().toISOString() }
         };
 
+        // 1. Fallback to LocalStorage immediately
         try {
-            await setDoc(doc(db, "resumes", user.uid), toSave);
+            localStorage.setItem(`resume_backup_${resume.resumeId || 'anon'}`, JSON.stringify(toSave));
+        } catch (e) {
+            console.warn("LocalStorage save failed:", e);
+        }
+
+        if (!user) return;
+
+        // 2. Sanitize to remove undefined values for Firestore
+        const sanitized = JSON.parse(JSON.stringify(toSave));
+
+        try {
+            await setDoc(doc(db, "resumes", user.uid), sanitized);
             setResume(toSave);
-            console.log("Resume saved successfully");
+            console.log("Resume saved successfully (v2)");
         } catch (error) {
             console.error("Error saving resume:", error);
             throw error;
         }
     }, [resume, user]);
 
-    const updateTemplate = useCallback((templateId: Resume["templateId"]) => {
+    // Load Backup on mount if user not yet loaded or if fresh session
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const backupKey = user ? `resume_backup_${user.uid}` : 'resume_backup_anon';
+        const backup = localStorage.getItem(backupKey);
+
+        if (backup && !resume) {
+            try {
+                const parsed = JSON.parse(backup);
+                console.log("Restored resume from local backup");
+                setResume(parsed);
+                setLoading(false);
+            } catch (e) {
+                console.error("Failed to parse local backup:", e);
+            }
+        }
+    }, [user, resume]);
+
+    const updateTemplate = useCallback((templateId: string) => {
         setResume((prev) => {
             if (!prev) return null;
             return { ...prev, templateId };

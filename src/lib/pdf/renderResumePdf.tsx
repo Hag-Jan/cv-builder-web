@@ -1,6 +1,6 @@
 import { pdf } from '@react-pdf/renderer';
 import React from 'react';
-import type { Resume } from '@/types/resume-schema-v1';
+import type { ResumeV2 as Resume } from '@/types/resume-schema-v2';
 import { getTemplate } from './templateEngine';
 
 /**
@@ -10,8 +10,9 @@ import { getTemplate } from './templateEngine';
  * @returns A promise that resolves to the PDF Blob
  */
 export async function generateResumePdf(resume: Resume): Promise<Blob> {
-    const Template = getTemplate(resume.templateId);
-    const doc = <Template resume={resume} />;
+    const { PdfComponent } = getTemplate(resume.templateId);
+    // Cast to any to handle v1 components that haven't been fully migrated to v2 types yet
+    const doc = <PdfComponent resume={resume as any} />;
     const asBlob = await pdf(doc).toBlob();
     return asBlob;
 }

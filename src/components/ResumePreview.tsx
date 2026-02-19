@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import ATSBaseTemplate from "@/components/templates/ATSBaseTemplate";
+import React, { useState } from "react";
+import { getTemplate } from "@/lib/pdf/templateEngine";
 import ZoomControls from "@/components/ZoomControls";
-import { Resume } from "@/types/resume-schema-v1";
+import { ResumeV2 as Resume } from "@/types/resume-schema-v2";
 
 interface ResumePreviewProps {
     resume: Resume;
@@ -87,7 +87,10 @@ export default function ResumePreview({ resume }: ResumePreviewProps) {
                         marginBottom: zoom > 1 ? `${(zoom - 1) * 500}px` : "0",
                     }}
                 >
-                    <ATSBaseTemplate resume={resume} />
+                    {(() => {
+                        const HtmlComponent = getTemplate(resume.templateId).HtmlComponent;
+                        return <HtmlComponent resume={resume} />;
+                    })()}
                 </div>
             </div>
         </div>

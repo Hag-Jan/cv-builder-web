@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
-import { Loader2, Sparkles, RefreshCw } from "lucide-react";
-import { AIImproveResponse } from "@/types/ai-types";
+import React, { useState, useEffect } from "react";
+import { Loader2, Sparkles, RefreshCw, Check, X, TrendingUp, Zap, Target } from "lucide-react";
+import { getBulletImprovements } from "@/lib/ai/actions";
 
 interface AISuggestionsPopoverProps {
     originalText: string;
@@ -26,8 +26,7 @@ export function AISuggestionsPopover({
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [remainingCalls, setRemainingCalls] = useState<number | null>(null);
 
-    // Auto-fetch on mount
-    React.useEffect(() => {
+    useEffect(() => {
         fetchSuggestions();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -35,149 +34,110 @@ export function AISuggestionsPopover({
     const fetchSuggestions = async () => {
         setLoading(true);
         setError(null);
-
         try {
-            const response = await fetch("/api/ai/improve", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "x-user-id": userId,
-                },
-                body: JSON.stringify({
-                    text: originalText,
-                    jobDescription,
-                    missingKeywords,
-                }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || "Failed to generate suggestions");
-            }
-
-            const data: AIImproveResponse = await response.json();
+            const data = await getBulletImprovements(originalText, jobDescription, missingKeywords);
             setSuggestions(data.suggestions);
             setRemainingCalls(data.remainingCalls);
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Something went wrong");
+            setError(err instanceof Error ? err.message : "Failed to generate suggestions");
         } finally {
             setLoading(false);
         }
     };
 
-    const handleApply = (suggestion: string) => {
-        onApply(suggestion);
-        onClose();
-    };
+    const variantIcons = [
+        <TrendingUp key="0" className="w-3.5 h-3.5 text-blue-500" />,
+        <Zap key="1" className="w-3.5 h-3.5 text-amber-500" />,
+        <Target key="2" className="w-3.5 h-3.5 text-green-500" />
+    ];
+
+    const variantLabels = ["Metric Focused", "Action Focused", "Skill Focused"];
 
     return (
-        <>
-            {/* Backdrop */}
-            <div
-                className="fixed inset-0 bg-black/20 z-40"
-                onClick={onClose}
-            />
-
-            {/* Popover */}
-            <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] max-h-[80vh] bg-white rounded-lg shadow-2xl border z-50 overflow-hidden flex flex-col">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-200">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <Sparkles className="w-5 h-5" />
-                            <h3 className="font-semibold text-lg">AI-Improved Suggestions</h3>
-                        </div>
-                        <button
-                            onClick={onClose}
-                            className="text-white/80 hover:text-white transition-colors text-sm"
-                        >
-                            ✕
-                        </button>
+                <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-700 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-white">
+                        <Sparkles className="w-5 h-5" />
+                        <h3 className="text-lg font-bold tracking-tight">AI Bullet Optimizer</h3>
                     </div>
-                    {remainingCalls !== null && (
-                        <p className="text-xs text-white/90 mt-1">
-                            {remainingCalls} free {remainingCalls === 1 ? "call" : "calls"} remaining
-                        </p>
-                    )}
+                    <button
+                        onClick={onClose}
+                        className="p-1 hover:bg-white/20 rounded-full transition-colors text-white"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                    {/* Original Text */}
-                    <div className="bg-gray-50 p-3 rounded border">
-                        <p className="text-xs font-medium text-gray-500 mb-1">Original:</p>
-                        <p className="text-sm text-gray-700">{originalText}</p>
+                <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
+                    {/* Original Context */}
+                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 italic">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Original Draft</p>
+                        <p className="text-xs text-slate-600 leading-relaxed">&quot;{originalText}&quot;</p>
                     </div>
 
-                    {/* Loading State */}
-                    {loading && (
-                        <div className="flex items-center justify-center py-12">
-                            <div className="text-center">
-                                <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-2" />
-                                <p className="text-sm text-gray-600">Generating AI suggestions...</p>
+                    <div className="space-y-3">
+                        {loading ? (
+                            <div className="py-12 flex flex-col items-center justify-center space-y-3">
+                                <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                                <p className="text-sm font-bold text-slate-500 uppercase tracking-tighter animate-pulse">Engineering STAR variants...</p>
                             </div>
-                        </div>
-                    )}
-
-                    {/* Error State */}
-                    {error && (
-                        <div className="bg-red-50 border border-red-200 rounded p-4">
-                            <p className="text-sm text-red-800">{error}</p>
-                            <button
-                                onClick={fetchSuggestions}
-                                className="mt-2 text-xs text-red-600 hover:underline"
-                            >
-                                Try again
-                            </button>
-                        </div>
-                    )}
-
-                    {/* Suggestions */}
-                    {!loading && !error && suggestions.length > 0 && (
-                        <>
-                            <div className="space-y-3">
-                                {suggestions.map((suggestion, index) => (
-                                    <div
-                                        key={index}
-                                        className="bg-white border-2 border-gray-200 hover:border-blue-400 rounded-lg p-4 transition-all duration-200 group"
-                                    >
-                                        <div className="flex items-start justify-between gap-3">
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded">
-                                                        Option {index + 1}
-                                                    </span>
-                                                </div>
-                                                <p className="text-sm text-gray-800 leading-relaxed">
-                                                    {suggestion}
-                                                </p>
-                                            </div>
-                                            <button
-                                                onClick={() => handleApply(suggestion)}
-                                                className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors opacity-0 group-hover:opacity-100"
-                                            >
-                                                Apply
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
+                        ) : error ? (
+                            <div className="p-4 bg-red-50 border border-red-100 rounded-xl text-center">
+                                <p className="text-sm text-red-600 font-medium mb-3">{error}</p>
+                                <button onClick={fetchSuggestions} className="text-xs font-bold text-red-700 underline uppercase tracking-widest">Try Again</button>
                             </div>
-
-                            {/* Regenerate Button */}
-                            {remainingCalls !== null && remainingCalls > 0 && (
+                        ) : (
+                            suggestions.map((suggestion, index) => (
                                 <button
-                                    onClick={fetchSuggestions}
-                                    disabled={loading}
-                                    className="w-full bg-gray-100 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                                    key={index}
+                                    onClick={() => onApply(suggestion)}
+                                    className="group w-full text-left p-4 border border-slate-200 hover:border-blue-500 rounded-xl transition-all hover:bg-blue-50/30 hover:shadow-sm active:scale-[0.99] flex gap-3"
                                 >
-                                    <RefreshCw className="w-4 h-4" />
-                                    Regenerate Suggestions
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-1.5 text-[10px] font-bold uppercase tracking-widest">
+                                            {variantIcons[index]}
+                                            <span className="text-slate-400">{variantLabels[index]}</span>
+                                        </div>
+                                        <p className="text-sm text-slate-800 font-medium leading-relaxed">
+                                            {suggestion}
+                                        </p>
+                                    </div>
+                                    <div className="self-center opacity-0 group-hover:opacity-100 transition-opacity bg-blue-600 p-1.5 rounded-full text-white shadow-lg">
+                                        <Check className="w-3 h-3" />
+                                    </div>
                                 </button>
-                            )}
-                        </>
-                    )}
+                            ))
+                        )}
+                    </div>
+                </div>
+
+                {/* Footer */}
+                <div className="px-6 py-4 bg-slate-50 border-t flex items-center justify-between">
+                    <div className="flex flex-col">
+                        <button
+                            onClick={fetchSuggestions}
+                            disabled={loading || (remainingCalls !== null && remainingCalls <= 0)}
+                            className="flex items-center gap-2 text-[10px] font-bold text-slate-500 hover:text-blue-600 transition-colors disabled:opacity-30 uppercase tracking-widest"
+                        >
+                            <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
+                            Regenerate
+                        </button>
+                        {remainingCalls !== null && (
+                            <span className="text-[9px] text-slate-400 font-medium mt-0.5">{remainingCalls} free uses left</span>
+                        )}
+                    </div>
+
+                    <button
+                        onClick={onClose}
+                        className="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-200 rounded-lg transition-colors uppercase tracking-widest"
+                    >
+                        Cancel
+                    </button>
                 </div>
             </div>
-        </>
+        </div>
     );
 }

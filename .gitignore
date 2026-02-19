@@ -39,3 +39,21 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# logs
+dev_output.log
+firebase-debug.log
+*.log
+
+# local tools
+.agent/
+
+# backups
+package.json.backup
+
+# node / build
+node_modules/
+.next/
+
+# env
+.env.local

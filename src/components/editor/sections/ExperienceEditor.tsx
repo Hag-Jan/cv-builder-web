@@ -3,24 +3,33 @@
 import { useResume } from "@/contexts/ResumeContext";
 import { useATS } from "@/contexts/ATSContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { ExperienceSection, ExperienceItem } from "@/types/resume-schema-v1";
-import { LexicalRichText } from "../LexicalRichText";
+import type { ExperienceSectionV2, ExperienceItemV2 } from "@/types/resume-schema-v2";
+import dynamic from "next/dynamic";
 import { AISuggestionsPopover } from "@/components/ai/AISuggestionsPopover";
 import { v4 as uuidv4 } from "uuid";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Loader2, Plus, Trash2, MapPin, Calendar } from "lucide-react";
 import { useState } from "react";
 
-export function ExperienceEditor({ section }: { section: ExperienceSection }) {
-    const { updateSection } = useResume();
+const LexicalRichText = dynamic(() => import("../LexicalRichText").then((mod) => mod.LexicalRichText), {
+    ssr: false,
+    loading: () => <div className="h-[100px] border rounded bg-gray-50 flex items-center justify-center text-gray-400">Loading editor...</div>
+});
+
+export function ExperienceEditor({ section }: { section: ExperienceSectionV2 }) {
+    const { resume, updateSection } = useResume();
     const { atsResult, jobDescription } = useATS();
     const { user } = useAuth();
     const [showAIPopover, setShowAIPopover] = useState<{ itemId: string; bulletIndex: number } | null>(null);
+    const [improvingBulletId, setImprovingBulletId] = useState<string | null>(null);
+    const [aiInfo, setAiInfo] = useState<string | null>(null);
+    const [apiError, setApiError] = useState<string | null>(null);
 
     const handleAddItem = () => {
-        const newItem: ExperienceItem = {
+        const newItem: ExperienceItemV2 = {
             id: uuidv4(),
             company: "",
             role: "",
+            location: "",
             startDate: "",
             bullets: [],
         };
@@ -30,7 +39,7 @@ export function ExperienceEditor({ section }: { section: ExperienceSection }) {
         });
     };
 
-    const updateItem = (itemId: string, updates: Partial<ExperienceItem>) => {
+    const updateItem = (itemId: string, updates: Partial<ExperienceItemV2>) => {
         const newItems = section.items.map((item) =>
             item.id === itemId ? { ...item, ...updates } : item
         );
@@ -49,100 +58,171 @@ export function ExperienceEditor({ section }: { section: ExperienceSection }) {
         const newBullets = [...item.bullets];
         newBullets[bulletIndex] = suggestion;
         updateItem(itemId, { bullets: newBullets });
+        setShowAIPopover(null);
+    };
+
+    const handleImprove = (itemId: string, bulletIndex: number) => {
+        setShowAIPopover({ itemId, bulletIndex });
     };
 
     const hasATSResults = atsResult && atsResult.missingKeywords.length > 0 && jobDescription;
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 relative">
+            {apiError && (
+                <div className="fixed bottom-4 right-4 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded shadow-lg z-50 text-sm animate-in fade-in slide-in-from-bottom-2">
+                    <p className="font-semibold">AI Improvement Failed</p>
+                    <p>{apiError}</p>
+                </div>
+            )}
+            {aiInfo && (
+                <div className="fixed bottom-4 right-4 bg-blue-50 border border-blue-200 text-blue-600 px-4 py-3 rounded shadow-lg z-50 text-sm animate-in fade-in slide-in-from-bottom-2">
+                    <p className="font-semibold">Service Update</p>
+                    <p>{aiInfo}</p>
+                </div>
+            )}
             <div className="flex justify-between items-center border-b pb-2">
-                <h3 className="text-lg font-semibold">Experience</h3>
-                <button onClick={handleAddItem} className="text-sm bg-blue-50 text-blue-600 px-3 py-1 rounded hover:bg-blue-100">
-                    + Add Position
+                <h3 className="text-lg font-semibold text-gray-800">Experience</h3>
+                <button
+                    onClick={handleAddItem}
+                    className="flex items-center gap-1.5 text-sm bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors shadow-sm"
+                >
+                    <Plus size={16} />
+                    Add Position
                 </button>
             </div>
 
             {section.items.length === 0 && (
-                <p className="text-gray-500 text-sm">No experience added yet.</p>
+                <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-lg">
+                    <Briefcase className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500 text-sm font-medium">No experience added yet</p>
+                    <button onClick={handleAddItem} className="mt-2 text-blue-600 text-sm hover:underline font-medium">Add your first role</button>
+                </div>
             )}
 
-            {section.items.map((item) => (
-                <div key={item.id} className="border p-4 rounded bg-white shadow-sm space-y-4">
-                    <div className="flex justify-between">
-                        <h4 className="font-medium text-gray-700">Position Details</h4>
-                        <button onClick={() => removeItem(item.id)} className="text-red-500 text-xs hover:underline">Remove</button>
-                    </div>
+            <div className="space-y-4">
+                {section.items.map((item) => (
+                    <div key={item.id} className="border border-gray-200 rounded-lg bg-white shadow-sm overflow-hidden group">
+                        <div className="bg-gray-50/50 px-4 py-2 border-b border-gray-100 flex justify-between items-center">
+                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Position Details</span>
+                            <button onClick={() => removeItem(item.id)} className="text-gray-400 hover:text-red-500 transition-colors">
+                                <Trash2 size={16} />
+                            </button>
+                        </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-xs font-medium text-gray-500">Company</label>
-                            <input
-                                value={item.company}
-                                onChange={(e) => updateItem(item.id, { company: e.target.value })}
-                                className="w-full border p-2 rounded text-sm"
-                                placeholder="Google"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-medium text-gray-500">Role</label>
-                            <input
-                                value={item.role}
-                                onChange={(e) => updateItem(item.id, { role: e.target.value })}
-                                className="w-full border p-2 rounded text-sm"
-                                placeholder="Senior Engineer"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-medium text-gray-500">Start Date</label>
-                            <input
-                                type="month"
-                                value={item.startDate}
-                                onChange={(e) => updateItem(item.id, { startDate: e.target.value })}
-                                className="w-full border p-2 rounded text-sm"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-medium text-gray-500">End Date</label>
-                            <input
-                                type="text" // Using text to allow "Present"
-                                value={item.endDate || ""}
-                                onChange={(e) => updateItem(item.id, { endDate: e.target.value })}
-                                className="w-full border p-2 rounded text-sm"
-                                placeholder="YYYY-MM or Present"
-                            />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">Summary / Bullets (One per line)</label>
-                        {/* Key ensures text is reset if item changes (though usually id is stable) */}
-                        <LexicalRichText
-                            initialValue={item.bullets}
-                            onChange={(bullets) => updateItem(item.id, { bullets })}
-                            placeholder="• Leading a team of..."
-                        />
-
-                        {/* AI Improve Buttons for Each Bullet */}
-                        {hasATSResults && item.bullets.length > 0 && (
-                            <div className="mt-3 space-y-2">
-                                <p className="text-xs font-medium text-gray-600">AI Improve Bullets:</p>
-                                {item.bullets.map((bullet, index) => (
-                                    <div key={index} className="flex items-start gap-2 bg-purple-50 p-2 rounded">
-                                        <span className="text-xs text-gray-600 flex-1 line-clamp-2">{bullet}</span>
-                                        <button
-                                            onClick={() => setShowAIPopover({ itemId: item.id, bulletIndex: index })}
-                                            className="flex items-center gap-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-3 py-1 rounded text-xs font-medium hover:opacity-90 transition-opacity whitespace-nowrap"
-                                        >
-                                            <Sparkles className="w-3 h-3" />
-                                            AI Improve
-                                        </button>
+                        <div className="p-4 space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-xs font-semibold text-gray-600 uppercase tracking-tight">
+                                        Company <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        value={item.company}
+                                        onChange={(e) => updateItem(item.id, { company: e.target.value })}
+                                        className={`w-full border ${!item.company.trim() ? 'border-amber-200' : 'border-gray-300'} p-2 rounded text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-shadow`}
+                                        placeholder="Google"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-semibold text-gray-600 uppercase tracking-tight">
+                                        Role <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        value={item.role}
+                                        onChange={(e) => updateItem(item.id, { role: e.target.value })}
+                                        className={`w-full border ${!item.role.trim() ? 'border-amber-200' : 'border-gray-300'} p-2 rounded text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-shadow`}
+                                        placeholder="Senior Engineer"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-semibold text-gray-600 uppercase tracking-tight flex items-center gap-1">
+                                        <MapPin size={10} /> Location
+                                    </label>
+                                    <input
+                                        value={item.location || ""}
+                                        onChange={(e) => updateItem(item.id, { location: e.target.value })}
+                                        className="w-full border border-gray-300 p-2 rounded text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-shadow"
+                                        placeholder="San Francisco, CA"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-semibold text-gray-600 uppercase tracking-tight flex items-center gap-1">
+                                            <Calendar size={10} /> Start
+                                        </label>
+                                        <input
+                                            type="month"
+                                            value={item.startDate}
+                                            onChange={(e) => updateItem(item.id, { startDate: e.target.value })}
+                                            className="w-full border border-gray-300 p-2 rounded text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-shadow"
+                                        />
                                     </div>
-                                ))}
+                                    <div className="space-y-1">
+                                        <div className="flex justify-between items-center">
+                                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-tight flex items-center gap-1">
+                                                <Calendar size={10} /> End
+                                            </label>
+                                            <label className="flex items-center gap-1 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={item.endDate === "Present"}
+                                                    onChange={(e) => updateItem(item.id, { endDate: e.target.checked ? "Present" : "" })}
+                                                    className="w-3 h-3 rounded text-blue-600 focus:ring-0"
+                                                />
+                                                <span className="text-[10px] font-bold text-gray-400">PRESENT</span>
+                                            </label>
+                                        </div>
+                                        <input
+                                            type={item.endDate === "Present" ? "text" : "month"}
+                                            value={item.endDate || ""}
+                                            disabled={item.endDate === "Present"}
+                                            onChange={(e) => updateItem(item.id, { endDate: e.target.value })}
+                                            className={`w-full border border-gray-300 p-2 rounded text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-shadow ${item.endDate === "Present" ? "bg-gray-50 text-gray-500 italic" : ""}`}
+                                            placeholder={item.endDate === "Present" ? "Present" : ""}
+                                        />
+                                    </div>
+                                </div>
                             </div>
-                        )}
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-semibold text-gray-600 uppercase tracking-tight">Key Achievements & Responsibilities</label>
+                                <LexicalRichText
+                                    initialValue={item.bullets}
+                                    onChange={(bullets) => updateItem(item.id, { bullets })}
+                                    placeholder="• Leading a team of..."
+                                />
+
+                                {hasATSResults && item.bullets.length > 0 && (
+                                    <div className="mt-3 space-y-2 bg-purple-50/50 p-3 rounded-md border border-purple-100">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <Sparkles size={14} className="text-purple-600" />
+                                            <p className="text-xs font-bold text-gray-700 uppercase tracking-wider">AI Suggestions</p>
+                                        </div>
+                                        {item.bullets.map((bullet, index) => {
+                                            const bulletId = `${section.id}:${item.id}:${index}`;
+                                            const isImproving = improvingBulletId === bulletId;
+
+                                            return (
+                                                <div key={index} className="flex items-center gap-2 bg-white p-2 rounded border border-purple-100 group/bullet">
+                                                    <span className="text-[11px] text-gray-600 flex-1 line-clamp-1 italic">{bullet}</span>
+                                                    <button
+                                                        onClick={() => handleImprove(item.id, index)}
+                                                        disabled={isImproving}
+                                                        className={`flex items-center gap-1 bg-purple-600 text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase transition-all whitespace-nowrap ${isImproving ? "opacity-75 cursor-not-allowed" : "hover:bg-purple-700"}`}
+                                                    >
+                                                        {isImproving ? <Loader2 className="w-3 h-3 animate-spin shadow-none" /> : <Sparkles className="w-2.5 h-2.5" />}
+                                                        Improve
+                                                    </button>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
-                </div>
-            ))}
+                ))}
+            </div>
 
             {/* AI Suggestions Popover */}
             {showAIPopover && user && hasATSResults && (
@@ -157,4 +237,11 @@ export function ExperienceEditor({ section }: { section: ExperienceSection }) {
             )}
         </div>
     );
+}
+
+// Helper component for the briefcase icon
+import { Briefcase } from "lucide-react";
+
+function CustomBriefcase({ className, ...props }: React.ComponentProps<typeof Briefcase>) {
+    return <Briefcase className={className} {...props} />;
 }
