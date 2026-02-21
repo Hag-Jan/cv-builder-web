@@ -10,6 +10,7 @@ import type {
     SummarySection,
 } from "@/types/resume-schema-v2";
 import { formatDate } from "@/lib/utils/date-formatter";
+import { EntryBlock } from "../preview/EntryBlock";
 
 // ─────────────────────────────────────────────────────────
 // Business Minimal — single column, ultra-clean, generous whitespace
@@ -20,17 +21,15 @@ interface BusinessMinimalProps {
     resume: Resume;
 }
 
-export default function BusinessMinimal({ resume }: BusinessMinimalProps) {
+export function renderBusinessMinimalBlocks(resume: Resume): React.ReactNode[] {
     const contact = resume.sections.find((s) => s.type === "contact") as ContactSection | undefined;
     const sorted = [...resume.sections].sort((a, b) => a.order - b.order);
+    const blocks: React.ReactNode[] = [];
 
-    return (
-        <div
-            className="max-w-3xl mx-auto bg-white px-14 py-12 text-gray-700"
-            style={{ fontFamily: "Inter, Arial, sans-serif" }}
-        >
-            {/* ── Header ── */}
-            {contact && (
+    // ── Header Block ──
+    if (contact) {
+        blocks.push(
+            <EntryBlock key="contact" type="contact" id="contact">
                 <header className="mb-10">
                     <h1 className="text-[30px] font-bold text-gray-900 tracking-tight mb-1">
                         {contact.name}
@@ -50,154 +49,237 @@ export default function BusinessMinimal({ resume }: BusinessMinimalProps) {
                         )}
                     </div>
                 </header>
-            )}
+            </EntryBlock>
+        );
+    }
 
-            {/* ── Sections ── */}
-            {sorted.map((section) => {
-                if (section.type === "contact") return null;
+    // ── Other Sections ──
+    sorted.forEach((section) => {
+        if (section.type === "contact") return;
 
-                return (
-                    <section key={section.id} className="mb-8">
-                        {/* Summary */}
-                        {section.type === "summary" && (section as SummarySection).content && (
-                            <>
-                                <MinimalSectionTitle label="Summary" />
-                                <p className="text-[13px] leading-relaxed text-gray-600 mt-3">
-                                    {(section as SummarySection).content}
-                                </p>
-                            </>
-                        )}
-
-                        {/* Experience */}
-                        {section.type === "experience" && (section as ExperienceSection).items.length > 0 && (
-                            <>
-                                <MinimalSectionTitle label="Experience" />
-                                <div className="space-y-6 mt-3">
-                                    {(section as ExperienceSection).items.map((item) => (
-                                        <div key={item.id}>
-                                            <div className="flex justify-between items-baseline">
-                                                <h3 className="text-[14px] font-bold text-gray-900">{item.role}</h3>
-                                                <time className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter min-w-fit">
-                                                    {formatDate(item.startDate)} – {formatDate(item.endDate || "Present")}
-                                                </time>
-                                            </div>
-                                            <div className="flex justify-between items-baseline mb-2">
-                                                <p className="text-[12px] text-gray-500 font-medium">{item.company}</p>
-                                                {item.location && (
-                                                    <p className="text-[10px] text-gray-400">{item.location}</p>
-                                                )}
-                                            </div>
-                                            {item.bullets && item.bullets.length > 0 && (
-                                                <ul className="space-y-1.5 pl-1">
-                                                    {item.bullets.map((b, i) => (
-                                                        <li key={i} className="text-[12px] text-gray-600 flex gap-2">
-                                                            <span className="text-gray-300 flex-shrink-0">•</span>
-                                                            <span className="leading-snug">{b}</span>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            </>
-                        )}
-
-                        {/* Education */}
-                        {section.type === "education" && (section as EducationSection).items.length > 0 && (
-                            <>
-                                <MinimalSectionTitle label="Education" />
-                                <div className="space-y-4 mt-3">
-                                    {(section as EducationSection).items.map((item) => (
-                                        <div key={item.id}>
-                                            <div className="flex justify-between items-baseline">
-                                                <h3 className="text-[13px] font-bold text-gray-900">{item.school}</h3>
-                                                <time className="text-[10px] font-semibold text-gray-400 min-w-fit">
-                                                    {formatDate(item.date)}
-                                                </time>
-                                            </div>
-                                            <p className="text-[12px] text-gray-500">{item.degree}</p>
-                                            {(item.gpa || item.honors) && (
-                                                <p className="text-[10px] text-gray-400 italic mt-0.5">
-                                                    {[item.gpa && `GPA: ${item.gpa}`, item.honors].filter(Boolean).join(" | ")}
-                                                </p>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            </>
-                        )}
-
-                        {/* Skills */}
-                        {section.type === "skills" && (
-                            <>
-                                <MinimalSectionTitle label="Skills" />
-                                <div className="space-y-2 mt-3">
-                                    {(section as SkillsSection).categories.map((cat) => (
-                                        <div key={cat.id} className="text-[12px] text-gray-600">
-                                            <span className="font-bold text-gray-800 mr-2">{cat.label}:</span>
-                                            <span>{cat.skills.join(", ")}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </>
-                        )}
-
-                        {/* Projects */}
-                        {section.type === "projects" && (section as ProjectsSection).items.length > 0 && (
-                            <>
-                                <MinimalSectionTitle label="Projects" />
-                                <div className="space-y-5 mt-3">
-                                    {(section as ProjectsSection).items.map((item) => (
-                                        <div key={item.id}>
-                                            <div className="flex justify-between items-baseline mb-0.5">
-                                                <h3 className="text-[13px] font-bold text-gray-900">{item.name}</h3>
-                                                {item.link && (
-                                                    <p className="text-[10px] text-gray-400">
-                                                        {item.link.replace(/^https?:\/\/(www\.)?/, "")}
-                                                    </p>
-                                                )}
-                                            </div>
-                                            {item.techStack && item.techStack.length > 0 && (
-                                                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter mb-1">
-                                                    {item.techStack.join(" / ")}
-                                                </p>
-                                            )}
-                                            {item.description && (
-                                                <p className="text-[12px] text-gray-600 leading-snug mb-1">
-                                                    {item.description}
-                                                </p>
-                                            )}
-                                            {item.bullets && item.bullets.length > 0 && (
-                                                <ul className="space-y-1 pl-1">
-                                                    {item.bullets.map((b, i) => (
-                                                        <li key={i} className="text-[11px] text-gray-500 flex gap-2 italic">
-                                                            <span className="text-gray-300 not-italic flex-shrink-0">›</span>
-                                                            <span>{b}</span>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            </>
-                        )}
-
-                        {/* Custom */}
-                        {section.type === "custom" && (
-                            <>
-                                <MinimalSectionTitle label={(section as CustomSection).title} />
-                                <div className="space-y-1 mt-3">
-                                    {(section as CustomSection).content.map((c, i) => (
-                                        <p key={i} className="text-[12px] text-gray-600">{c}</p>
-                                    ))}
-                                </div>
-                            </>
-                        )}
+        // Summary
+        if (section.type === "summary" && (section as SummarySection).content) {
+            blocks.push(
+                <EntryBlock key={section.id} type="summary" id={section.id}>
+                    <section className="mb-8">
+                        <MinimalSectionTitle label="Summary" />
+                        <p className="text-[13px] leading-relaxed text-gray-600 mt-3">
+                            {(section as SummarySection).content}
+                        </p>
                     </section>
+                </EntryBlock>
+            );
+        }
+
+        // Experience
+        if (section.type === "experience" && (section as ExperienceSection).items.length > 0) {
+            blocks.push(
+                <EntryBlock
+                    key={`${section.id}-header`}
+                    type="header"
+                    id={`${section.id}-header`}
+                    sectionId={section.id}
+                    sectionTitle="Experience"
+                >
+                    <section className="mb-4">
+                        <MinimalSectionTitle label="Experience" />
+                    </section>
+                </EntryBlock>
+            );
+            (section as ExperienceSection).items.forEach((item) => {
+                blocks.push(
+                    <EntryBlock
+                        key={item.id}
+                        type="entry"
+                        id={item.id}
+                        sectionId={section.id}
+                        sectionTitle="Experience"
+                    >
+                        <div className="mb-6 px-1">
+                            <div className="flex justify-between items-baseline">
+                                <h3 className="text-[14px] font-bold text-gray-900">{item.role}</h3>
+                                <time className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter min-w-fit">
+                                    {formatDate(item.startDate)} – {formatDate(item.endDate || "Present")}
+                                </time>
+                            </div>
+                            <div className="flex justify-between items-baseline mb-2">
+                                <p className="text-[12px] text-gray-500 font-medium">{item.company}</p>
+                                {item.location && (
+                                    <p className="text-[10px] text-gray-400">{item.location}</p>
+                                )}
+                            </div>
+                            {item.bullets && item.bullets.length > 0 && (
+                                <ul className="space-y-1.5 pl-1">
+                                    {item.bullets.map((b, i) => (
+                                        <li key={i} className="text-[12px] text-gray-600 flex gap-2">
+                                            <span className="text-gray-300 flex-shrink-0">•</span>
+                                            <span className="leading-snug">{b}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
+                    </EntryBlock>
                 );
-            })}
+            });
+        }
+
+        // Education
+        if (section.type === "education" && (section as EducationSection).items.length > 0) {
+            blocks.push(
+                <EntryBlock
+                    key={`${section.id}-header`}
+                    type="header"
+                    id={`${section.id}-header`}
+                    sectionId={section.id}
+                    sectionTitle="Education"
+                >
+                    <section className="mb-4">
+                        <MinimalSectionTitle label="Education" />
+                    </section>
+                </EntryBlock>
+            );
+            (section as EducationSection).items.forEach((item) => {
+                blocks.push(
+                    <EntryBlock
+                        key={item.id}
+                        type="entry"
+                        id={item.id}
+                        sectionId={section.id}
+                        sectionTitle="Education"
+                    >
+                        <div className="mb-4 px-1">
+                            <div className="flex justify-between items-baseline">
+                                <h3 className="text-[13px] font-bold text-gray-900">{item.school}</h3>
+                                <time className="text-[10px] font-semibold text-gray-400 min-w-fit">
+                                    {formatDate(item.date)}
+                                </time>
+                            </div>
+                            <p className="text-[12px] text-gray-500">{item.degree}</p>
+                            {(item.gpa || item.honors) && (
+                                <p className="text-[10px] text-gray-400 italic mt-0.5">
+                                    {[item.gpa && `GPA: ${item.gpa}`, item.honors].filter(Boolean).join(" | ")}
+                                </p>
+                            )}
+                        </div>
+                    </EntryBlock>
+                );
+            });
+        }
+
+        // Skills
+        if (section.type === "skills") {
+            blocks.push(
+                <EntryBlock
+                    key={section.id}
+                    type="skills"
+                    id={section.id}
+                    sectionId={section.id}
+                    sectionTitle="Skills"
+                >
+                    <section className="mb-8">
+                        <MinimalSectionTitle label="Skills" />
+                        <div className="space-y-2 mt-3">
+                            {(section as SkillsSection).categories.map((cat) => (
+                                <div key={cat.id} className="text-[12px] text-gray-600">
+                                    <span className="font-bold text-gray-800 mr-2">{cat.label}:</span>
+                                    <span>{cat.skills.filter(Boolean).join(", ")}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                </EntryBlock>
+            );
+        }
+
+        // Projects
+        if (section.type === "projects" && (section as ProjectsSection).items.length > 0) {
+            blocks.push(
+                <EntryBlock
+                    key={`${section.id}-header`}
+                    type="header"
+                    id={`${section.id}-header`}
+                    sectionId={section.id}
+                    sectionTitle="Projects"
+                >
+                    <section className="mb-4">
+                        <MinimalSectionTitle label="Projects" />
+                    </section>
+                </EntryBlock>
+            );
+            (section as ProjectsSection).items.forEach((item) => {
+                blocks.push(
+                    <EntryBlock
+                        key={item.id}
+                        type="projects"
+                        id={item.id}
+                        sectionId={section.id}
+                        sectionTitle="Projects"
+                    >
+                        <div className="mb-5 px-1">
+                            <div className="flex justify-between items-baseline mb-0.5">
+                                <h3 className="text-[13px] font-bold text-gray-900">{item.name}</h3>
+                                {item.link && (
+                                    <p className="text-[10px] text-gray-400">
+                                        {item.link.replace(/^https?:\/\/(www\.)?/, "")}
+                                    </p>
+                                )}
+                            </div>
+                            {item.techStack && item.techStack.length > 0 && (
+                                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter mb-1">
+                                    {item.techStack.join(" / ")}
+                                </p>
+                            )}
+                            {item.description && (
+                                <p className="text-[12px] text-gray-600 leading-snug mb-1">
+                                    {item.description}
+                                </p>
+                            )}
+                            {item.bullets && item.bullets.length > 0 && (
+                                <ul className="space-y-1 pl-1">
+                                    {item.bullets.map((b, i) => (
+                                        <li key={i} className="text-[11px] text-gray-500 flex gap-2 italic">
+                                            <span className="text-gray-300 not-italic flex-shrink-0">›</span>
+                                            <span>{b}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
+                    </EntryBlock>
+                );
+            });
+        }
+
+        // Custom
+        if (section.type === "custom") {
+            blocks.push(
+                <EntryBlock key={section.id} type="custom" id={section.id}>
+                    <section className="mb-8">
+                        <MinimalSectionTitle label={(section as CustomSection).title} />
+                        <div className="space-y-1 mt-3">
+                            {(section as CustomSection).content.map((c, i) => (
+                                <p key={i} className="text-[12px] text-gray-600">{c}</p>
+                            ))}
+                        </div>
+                    </section>
+                </EntryBlock>
+            );
+        }
+    });
+
+    return blocks;
+}
+
+export default function BusinessMinimal({ resume }: BusinessMinimalProps) {
+    const blocks = renderBusinessMinimalBlocks(resume);
+
+    return (
+        <div
+            className="max-w-3xl mx-auto bg-white px-14 py-12 text-gray-700"
+            style={{ fontFamily: "Inter, Arial, sans-serif" }}
+        >
+            {blocks}
         </div>
     );
 }

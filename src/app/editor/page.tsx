@@ -14,6 +14,7 @@ import { EducationEditor } from "@/components/editor/sections/EducationEditor";
 import { SkillsEditor } from "@/components/editor/sections/SkillsEditor";
 import { ProjectsEditor } from "@/components/editor/sections/ProjectsEditor";
 import { SummaryEditor } from "@/components/editor/sections/SummaryEditor";
+import { CustomSectionEditor } from "@/components/editor/sections/CustomSectionEditor";
 import { ATSCheckerSidebar } from "@/components/ats/ATSCheckerSidebar";
 import ResumePreview from "@/components/ResumePreview";
 
@@ -65,8 +66,10 @@ export default function EditorPage() {
         return <SkillsEditor section={section as any} />;
       case "projects":
         return <ProjectsEditor section={section as any} />;
+      case "custom":
+        return <CustomSectionEditor section={section as any} />;
       default:
-        return <div className="p-12 text-center text-gray-400 italic">Unknown section type: {section.type}</div>;
+        return <div className="p-12 text-center text-gray-400 italic">Unknown section type: {(section as any).type}</div>;
     }
   }, [resume, activeSectionId, loading]);
 
@@ -110,6 +113,7 @@ export default function EditorPage() {
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-pink-400 rounded-full animate-ping" />
             </span>
           </button>
+
           <div className="h-6 w-px bg-gray-200 mx-1" />
           <ExportPdfButton resume={resume} />
         </div>

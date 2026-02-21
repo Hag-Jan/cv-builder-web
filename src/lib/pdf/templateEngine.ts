@@ -3,13 +3,13 @@ import type { TemplateConfig, TemplateTheme } from "@/types/template-types";
 import type { ResumeV2 as Resume } from "@/types/resume-schema-v2";
 
 // ── HTML template imports ─────────────────────────────
-import ATSBaseTemplate from "@/components/templates/ATSBaseTemplate";
-import ModernHtmlTemplate from "@/components/templates/ModernHtmlTemplate";
-import MinimalHtmlTemplate from "@/components/templates/MinimalHtmlTemplate";
-import BusinessClassic from "@/components/templates/BusinessClassic";
-import BusinessTwoColumn from "@/components/templates/BusinessTwoColumn";
-import BusinessModern from "@/components/templates/BusinessModern";
-import BusinessMinimal from "@/components/templates/BusinessMinimal";
+import ATSBaseTemplate, { renderATSBaseBlocks } from "@/components/templates/ATSBaseTemplate";
+import ModernHtmlTemplate, { renderModernHtmlBlocks } from "@/components/templates/ModernHtmlTemplate";
+import MinimalHtmlTemplate, { renderMinimalHtmlBlocks } from "@/components/templates/MinimalHtmlTemplate";
+import BusinessClassic, { renderBusinessClassicBlocks } from "@/components/templates/BusinessClassic";
+import BusinessTwoColumn, { renderBusinessTwoColumnBlocks } from "@/components/templates/BusinessTwoColumn";
+import BusinessModern, { renderBusinessModernBlocks } from "@/components/templates/BusinessModern";
+import BusinessMinimal, { renderBusinessMinimalBlocks } from "@/components/templates/BusinessMinimal";
 
 // ─────────────────────────────────────────────────────────
 // Unified Template Registry
@@ -20,6 +20,7 @@ export interface TemplateEntry {
     config: TemplateConfig;
     theme: TemplateTheme;
     HtmlComponent: React.ComponentType<{ resume: Resume }>;
+    renderBlocks?: (resume: Resume) => React.ReactNode[];
 }
 
 const registry = new Map<string, TemplateEntry>();
@@ -88,6 +89,7 @@ registerTemplate({
         spacing: { section: 16, item: 10 },
     },
     HtmlComponent: ATSBaseTemplate,
+    renderBlocks: renderATSBaseBlocks,
 });
 
 // Modern
@@ -113,6 +115,7 @@ registerTemplate({
         spacing: { section: 20, item: 12 },
     },
     HtmlComponent: ModernHtmlTemplate,
+    renderBlocks: renderModernHtmlBlocks,
 });
 
 // Minimal
@@ -138,6 +141,7 @@ registerTemplate({
         spacing: { section: 14, item: 8 },
     },
     HtmlComponent: MinimalHtmlTemplate,
+    renderBlocks: renderMinimalHtmlBlocks,
 });
 
 // ── Business Templates ────────────────────────────────────
@@ -165,6 +169,7 @@ registerTemplate({
         spacing: { section: 14, item: 10 },
     },
     HtmlComponent: BusinessClassic,
+    renderBlocks: renderBusinessClassicBlocks,
 });
 
 // Business Two Column
@@ -190,6 +195,7 @@ registerTemplate({
         spacing: { section: 18, item: 10 },
     },
     HtmlComponent: BusinessTwoColumn,
+    renderBlocks: renderBusinessTwoColumnBlocks,
 });
 
 // Business Modern
@@ -215,6 +221,7 @@ registerTemplate({
         spacing: { section: 16, item: 10 },
     },
     HtmlComponent: BusinessModern,
+    renderBlocks: renderBusinessModernBlocks,
 });
 
 // Business Minimal
@@ -240,6 +247,7 @@ registerTemplate({
         spacing: { section: 16, item: 8 },
     },
     HtmlComponent: BusinessMinimal,
+    renderBlocks: renderBusinessMinimalBlocks,
 });
 
 // Legacy export for backward compatibility

@@ -65,10 +65,14 @@ export async function generatePdfWithPuppeteer(resume: ResumeV2, options: Export
         logStep(`4b) Page loaded. HTML length: ${content.length}`);
 
         // 4. Generate the PDF with requested format and background printing
+        // We use preferCSSPageSize: true and set margin: 0px here because
+        // we'll handle margins and sizing via @page CSS in the template
+        // for better multi-page reliability.
         logStep('5) Generating PDF...');
         const pdfBuffer = await page.pdf({
             format: (options.paperSize || 'A4') as any,
             printBackground: true,
+            preferCSSPageSize: true,
             margin: {
                 top: '0px',
                 right: '0px',

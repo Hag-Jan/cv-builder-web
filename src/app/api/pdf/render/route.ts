@@ -34,7 +34,29 @@ export async function GET(req: NextRequest) {
         });
     }
 
-    const resume = renderCache.get(id);
+    const resumeRaw = renderCache.get(id);
+
+    // Sanitize resume data to fix extra injected text bugs
+    const sanitizeText = (text: string | null | undefined): string => {
+        if (!text) return "";
+        return text.replace(/<[^>]*>?/gm, '').replace(/\n\s*\n/g, '\n').trim();
+    };
+
+    const sanitizeObject = (obj: any): any => {
+        if (typeof obj === 'string') return sanitizeText(obj);
+        if (Array.isArray(obj)) return obj.map(sanitizeObject);
+        if (obj !== null && typeof obj === 'object') {
+            const newObj: any = {};
+            for (const key in obj) {
+                newObj[key] = sanitizeObject(obj[key]);
+            }
+            return newObj;
+        }
+        return obj;
+    };
+
+    const resume = sanitizeObject(resumeRaw);
+
     const { HtmlComponent } = getTemplate(resume.templateId);
 
     const { renderToStaticMarkup } = await import('react-dom/server');
@@ -49,15 +71,38 @@ export async function GET(req: NextRequest) {
         <script src="https://cdn.tailwindcss.com"></script>
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+            
+            @page {
+                size: A4;
+                margin: 0.75in;
+            }
+
             body { 
                 font-family: 'Inter', sans-serif;
                 margin: 0;
                 padding: 0;
                 -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
+
             .resume-container {
                 width: 100%;
                 background: white;
+            }
+
+            /* Prevent sections from breaking across pages in an ugly way */
+            .resume-entry-block {
+                page-break-inside: avoid;
+                break-inside: avoid;
+                margin-bottom: 0.5rem;
+            }
+
+            /* Ensure consistent top margin on second page and beyond */
+            @media print {
+                html, body {
+                    height: auto;
+                    overflow: visible;
+                }
             }
         </style>
     </head>

@@ -10,6 +10,7 @@ import type {
     SummarySection,
 } from "@/types/resume-schema-v2";
 import { formatDate, ensureUrlScheme } from "@/lib/utils/date-formatter";
+import { EntryBlock } from "../preview/EntryBlock";
 
 // ─────────────────────────────────────────────────────────
 // Modern HTML Template — sans-serif + blue accent colors
@@ -22,17 +23,15 @@ interface ModernHtmlTemplateProps {
 
 const ACCENT = "#2563EB"; // blue-600
 
-export default function ModernHtmlTemplate({ resume }: ModernHtmlTemplateProps) {
+export function renderModernHtmlBlocks(resume: Resume): React.ReactNode[] {
     const contact = resume.sections.find((s) => s.type === "contact") as ContactSection | undefined;
     const sorted = [...resume.sections].sort((a, b) => a.order - b.order);
+    const blocks: React.ReactNode[] = [];
 
-    return (
-        <div
-            className="max-w-3xl mx-auto bg-white px-10 py-10 text-gray-800"
-            style={{ fontFamily: "Inter, system-ui, sans-serif" }}
-        >
-            {/* ── Header ── */}
-            {contact && (
+    // ── Header Block ──
+    if (contact) {
+        blocks.push(
+            <EntryBlock key="contact" type="contact" id="contact">
                 <div className="mb-8 pb-6" style={{ borderBottom: `3px solid ${ACCENT}` }}>
                     <h1
                         className="text-3xl font-extrabold tracking-tight mb-1"
@@ -82,152 +81,269 @@ export default function ModernHtmlTemplate({ resume }: ModernHtmlTemplateProps) 
                         )}
                     </div>
                 </div>
-            )}
+            </EntryBlock>
+        );
+    }
 
-            {/* ── Sections ── */}
-            {sorted.map((section) => {
-                if (section.type === "contact") return null;
+    // ── Other Sections ──
+    sorted.forEach((section) => {
+        if (section.type === "contact") return;
 
-                return (
-                    <div key={section.id} className="mb-7">
-                        {/* Summary */}
-                        {section.type === "summary" && (section as SummarySection).content && (
-                            <>
-                                <SectionTitle label="Summary" accent={ACCENT} />
-                                <p className="text-[13px] leading-relaxed text-gray-600 mt-2">
-                                    {(section as SummarySection).content}
-                                </p>
-                            </>
-                        )}
-
-                        {/* Experience */}
-                        {section.type === "experience" && (section as ExperienceSection).items.length > 0 && (
-                            <>
-                                <SectionTitle label="Experience" accent={ACCENT} />
-                                <div className="space-y-5 mt-3">
-                                    {(section as ExperienceSection).items.map((item) => (
-                                        <div key={item.id}>
-                                            <div className="flex justify-between items-baseline">
-                                                <p className="text-[14px] font-bold text-gray-900">{item.role}</p>
-                                                <p className="text-[11px] font-semibold text-blue-500">
-                                                    {formatDate(item.startDate)} – {formatDate(item.endDate || "Present")}
-                                                </p>
-                                            </div>
-                                            <div className="flex justify-between items-baseline mb-2">
-                                                <p className="text-[12px] text-gray-500 font-medium">{item.company}</p>
-                                                {item.location && (
-                                                    <p className="text-[11px] text-gray-400 italic">{item.location}</p>
-                                                )}
-                                            </div>
-                                            {item.bullets && item.bullets.length > 0 && (
-                                                <ul className="space-y-1 pl-1">
-                                                    {item.bullets.map((b, i) => (
-                                                        <li key={i} className="text-[12px] text-gray-600 flex gap-2">
-                                                            <span style={{ color: ACCENT }}>›</span>
-                                                            <span className="leading-snug">{b}</span>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            </>
-                        )}
-
-                        {/* Education */}
-                        {section.type === "education" && (section as EducationSection).items.length > 0 && (
-                            <>
-                                <SectionTitle label="Education" accent={ACCENT} />
-                                <div className="space-y-4 mt-3">
-                                    {(section as EducationSection).items.map((item) => (
-                                        <div key={item.id}>
-                                            <div className="flex justify-between items-baseline">
-                                                <p className="text-[13px] font-bold text-gray-900">{item.school}</p>
-                                                <p className="text-[11px] font-semibold text-blue-500">{item.date}</p>
-                                            </div>
-                                            <p className="text-[12px] text-gray-500">{item.degree}</p>
-                                            {(item.gpa || item.honors) && (
-                                                <p className="text-[11px] text-gray-400 italic mt-0.5">
-                                                    {[item.gpa && `GPA: ${item.gpa}`, item.honors].filter(Boolean).join(" | ")}
-                                                </p>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            </>
-                        )}
-
-                        {/* Skills */}
-                        {section.type === "skills" && (
-                            <>
-                                <SectionTitle label="Skills" accent={ACCENT} />
-                                <div className="grid grid-cols-1 gap-y-2 mt-3">
-                                    {(section as SkillsSection).categories.map((cat) => (
-                                        <div key={cat.id} className="text-[12px] text-gray-600">
-                                            <h3 className="text-[12px] font-bold mb-0.5" style={{ color: ACCENT }}>
-                                                {cat.label}
-                                            </h3>
-                                            <span>{cat.skills.join(", ")}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </>
-                        )}
-
-                        {/* Projects */}
-                        {section.type === "projects" && (section as ProjectsSection).items.length > 0 && (
-                            <>
-                                <SectionTitle label="Projects" accent={ACCENT} />
-                                <div className="space-y-5 mt-3">
-                                    {(section as ProjectsSection).items.map((item) => (
-                                        <div key={item.id}>
-                                            <div className="flex justify-between items-baseline mb-1">
-                                                <p className="text-[13px] font-bold text-gray-900">{item.name}</p>
-                                                {item.link && (
-                                                    <p className="text-[10px] font-medium" style={{ color: ACCENT }}>
-                                                        {item.link.replace(/^https?:\/\/(www\.)?/, "")}
-                                                    </p>
-                                                )}
-                                            </div>
-                                            {item.techStack && item.techStack.length > 0 && (
-                                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tight mb-1">
-                                                    {item.techStack.join(" / ")}
-                                                </p>
-                                            )}
-                                            {item.description && (
-                                                <p className="text-[12px] text-gray-600 leading-snug mb-2">{item.description}</p>
-                                            )}
-                                            {item.bullets && item.bullets.length > 0 && (
-                                                <ul className="space-y-0.5 pl-1">
-                                                    {item.bullets.map((b, i) => (
-                                                        <li key={i} className="text-[11px] text-gray-500 flex gap-2">
-                                                            <span style={{ color: ACCENT }}>›</span>
-                                                            <span>{b}</span>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            </>
-                        )}
-
-                        {/* Custom */}
-                        {section.type === "custom" && (
-                            <>
-                                <SectionTitle label={(section as CustomSection).title} accent={ACCENT} />
-                                <div className="space-y-1 mt-3">
-                                    {(section as CustomSection).content.map((c, i) => (
-                                        <p key={i} className="text-[12px] text-gray-600">{c}</p>
-                                    ))}
-                                </div>
-                            </>
-                        )}
+        // Summary
+        if (section.type === "summary" && (section as SummarySection).content) {
+            blocks.push(
+                <EntryBlock
+                    key={section.id}
+                    type="summary"
+                    id={section.id}
+                    sectionId={section.id}
+                    sectionTitle="Summary"
+                >
+                    <div className="mb-7">
+                        <SectionTitle label="Summary" accent={ACCENT} />
+                        <p className="text-[13px] leading-relaxed text-gray-600 mt-2">
+                            {(section as SummarySection).content}
+                        </p>
                     </div>
+                </EntryBlock>
+            );
+        }
+
+        // Experience
+        if (section.type === "experience" && (section as ExperienceSection).items.length > 0) {
+            blocks.push(
+                <EntryBlock
+                    key={`${section.id}-header`}
+                    type="header"
+                    id={`${section.id}-header`}
+                    sectionId={section.id}
+                    sectionTitle="Experience"
+                >
+                    <div className="mb-3">
+                        <SectionTitle label="Experience" accent={ACCENT} />
+                    </div>
+                </EntryBlock>
+            );
+            (section as ExperienceSection).items.forEach((item) => {
+                blocks.push(
+                    <EntryBlock
+                        key={item.id}
+                        type="entry"
+                        id={item.id}
+                        sectionId={section.id}
+                        sectionTitle="Experience"
+                    >
+                        <div className="mb-5">
+                            <div className="flex justify-between items-baseline">
+                                <p className="text-[14px] font-bold text-gray-900">{item.role}</p>
+                                <p className="text-[11px] font-semibold text-blue-500">
+                                    {formatDate(item.startDate)} – {formatDate(item.endDate || "Present")}
+                                </p>
+                            </div>
+                            <div className="flex justify-between items-baseline mb-2">
+                                <p className="text-[12px] text-gray-500 font-medium">{item.company}</p>
+                                {item.location && (
+                                    <p className="text-[11px] text-gray-400 italic">{item.location}</p>
+                                )}
+                            </div>
+                            {item.bullets && item.bullets.length > 0 && (
+                                <ul className="space-y-1 pl-1">
+                                    {item.bullets.map((b, i) => (
+                                        <li key={i} className="text-[12px] text-gray-600 flex gap-2">
+                                            <span style={{ color: ACCENT }}>›</span>
+                                            <span className="leading-snug">{b}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
+                    </EntryBlock>
                 );
-            })}
+            });
+        }
+
+        // Education
+        if (section.type === "education" && (section as EducationSection).items.length > 0) {
+            blocks.push(
+                <EntryBlock
+                    key={`${section.id}-header`}
+                    type="header"
+                    id={`${section.id}-header`}
+                    sectionId={section.id}
+                    sectionTitle="Education"
+                >
+                    <div className="mb-3">
+                        <SectionTitle label="Education" accent={ACCENT} />
+                    </div>
+                </EntryBlock>
+            );
+            (section as EducationSection).items.forEach((item) => {
+                blocks.push(
+                    <EntryBlock
+                        key={item.id}
+                        type="entry"
+                        id={item.id}
+                        sectionId={section.id}
+                        sectionTitle="Education"
+                    >
+                        <div className="mb-4">
+                            <div className="flex justify-between items-baseline">
+                                <p className="text-[13px] font-bold text-gray-900">{item.school}</p>
+                                <p className="text-[11px] font-semibold text-blue-500">{item.date}</p>
+                            </div>
+                            <p className="text-[12px] text-gray-500">{item.degree}</p>
+                            {(item.gpa || item.honors) && (
+                                <p className="text-[11px] text-gray-400 italic mt-0.5">
+                                    {[item.gpa && `GPA: ${item.gpa}`, item.honors].filter(Boolean).join(" | ")}
+                                </p>
+                            )}
+                        </div>
+                    </EntryBlock>
+                );
+            });
+        }
+
+        // Skills
+        if (section.type === "skills") {
+            blocks.push(
+                <EntryBlock
+                    key={`${section.id}-header`}
+                    type="header"
+                    id={`${section.id}-header`}
+                    sectionId={section.id}
+                    sectionTitle="Skills"
+                >
+                    <div className="mb-3">
+                        <SectionTitle label="Skills" accent={ACCENT} />
+                    </div>
+                </EntryBlock>
+            );
+
+            const numCategories = (section as SkillsSection).categories.length;
+            (section as SkillsSection).categories.forEach((cat, index) => {
+                blocks.push(
+                    <EntryBlock
+                        key={cat.id}
+                        type="skills"
+                        id={cat.id}
+                        sectionId={section.id}
+                        sectionTitle="Skills"
+                    >
+                        <div className={`text-[12px] text-gray-600 ${index === numCategories - 1 ? 'mb-7' : 'mb-2'}`}>
+                            <h3 className="text-[12px] font-bold mb-0.5" style={{ color: ACCENT }}>
+                                {cat.label}
+                            </h3>
+                            <span>{cat.skills.filter(Boolean).join(", ")}</span>
+                        </div>
+                    </EntryBlock>
+                );
+            });
+        }
+
+        // Projects
+        if (section.type === "projects" && (section as ProjectsSection).items.length > 0) {
+            blocks.push(
+                <EntryBlock
+                    key={`${section.id}-header`}
+                    type="header"
+                    id={`${section.id}-header`}
+                    sectionId={section.id}
+                    sectionTitle="Projects"
+                >
+                    <div className="mb-3">
+                        <SectionTitle label="Projects" accent={ACCENT} />
+                    </div>
+                </EntryBlock>
+            );
+            (section as ProjectsSection).items.forEach((item) => {
+                blocks.push(
+                    <EntryBlock
+                        key={item.id}
+                        type="entry"
+                        id={item.id}
+                        sectionId={section.id}
+                        sectionTitle="Projects"
+                    >
+                        <div className="mb-5">
+                            <div className="flex justify-between items-baseline mb-1">
+                                <p className="text-[13px] font-bold text-gray-900">{item.name}</p>
+                                {item.link && (
+                                    <p className="text-[10px] font-medium" style={{ color: ACCENT }}>
+                                        {item.link.replace(/^https?:\/\/(www\.)?/, "")}
+                                    </p>
+                                )}
+                            </div>
+                            {item.techStack && item.techStack.length > 0 && (
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tight mb-1">
+                                    {item.techStack.join(" / ")}
+                                </p>
+                            )}
+                            {item.description && (
+                                <p className="text-[12px] text-gray-600 leading-snug mb-2">{item.description}</p>
+                            )}
+                            {item.bullets && item.bullets.length > 0 && (
+                                <ul className="space-y-0.5 pl-1">
+                                    {item.bullets.map((b, i) => (
+                                        <li key={i} className="text-[11px] text-gray-500 flex gap-2">
+                                            <span style={{ color: ACCENT }}>›</span>
+                                            <span>{b}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
+                    </EntryBlock>
+                );
+            });
+        }
+
+        // Custom
+        if (section.type === "custom") {
+            blocks.push(
+                <EntryBlock
+                    key={`${section.id}-header`}
+                    type="header"
+                    id={`${section.id}-header`}
+                    sectionId={section.id}
+                    sectionTitle={(section as CustomSection).title}
+                >
+                    <div className="mb-3">
+                        <SectionTitle label={(section as CustomSection).title} accent={ACCENT} />
+                    </div>
+                </EntryBlock>
+            );
+
+            const numContent = (section as CustomSection).content.length;
+            (section as CustomSection).content.forEach((c, i) => {
+                blocks.push(
+                    <EntryBlock
+                        key={`${section.id}-item-${i}`}
+                        type="custom"
+                        id={`${section.id}-item-${i}`}
+                        sectionId={section.id}
+                        sectionTitle={(section as CustomSection).title}
+                    >
+                        <div className={`space-y-1 ${i === numContent - 1 ? 'mb-7' : 'mb-1'}`}>
+                            <p className="text-[12px] text-gray-600">{c}</p>
+                        </div>
+                    </EntryBlock>
+                );
+            });
+        }
+    });
+
+    return blocks;
+}
+
+export default function ModernHtmlTemplate({ resume }: ModernHtmlTemplateProps) {
+    const blocks = renderModernHtmlBlocks(resume);
+
+    return (
+        <div
+            className="max-w-3xl mx-auto bg-white px-10 py-10 text-gray-800"
+            style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+        >
+            {blocks}
         </div>
     );
 }
