@@ -11,6 +11,8 @@ import type {
 } from "@/types/resume-schema-v2";
 import { formatDate } from "@/lib/utils/date-formatter";
 import { EntryBlock } from "../preview/EntryBlock";
+import { ResumeHeader } from "../preview/ResumeHeader";
+import { ResumeSummary } from "../preview/ResumeSummary";
 
 // ─────────────────────────────────────────────────────────
 // Business Two Column — 65/35 grid layout
@@ -36,24 +38,21 @@ export function renderBusinessTwoColumnBlocks(resume: Resume): React.ReactNode[]
         blocks.push(
             <EntryBlock key="contact" type="contact" id="contact">
                 <header
-                    className="px-8 py-6"
+                    className="px-8 py-6 mb-4"
                     style={{ backgroundColor: ACCENT, color: "#FFFFFF" }}
                 >
-                    <h1 className="text-[24px] font-extrabold tracking-tight mb-1">{contact.name}</h1>
-                    <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-[11px] opacity-90 font-medium mt-1">
-                        {contact.email && <span>{contact.email}</span>}
-                        {contact.phone && <span>{contact.phone}</span>}
-                        {contact.location && <span>{contact.location}</span>}
-                        {contact.linkedin && (
-                            <span>{contact.linkedin.replace(/^https?:\/\/(www\.)?/, "")}</span>
-                        )}
-                        {contact.github && (
-                            <span>{contact.github.replace(/^https?:\/\/(www\.)?/, "")}</span>
-                        )}
-                        {contact.website && (
-                            <span>{contact.website.replace(/^https?:\/\/(www\.)?/, "")}</span>
-                        )}
-                    </div>
+                    <ResumeHeader
+                        name={contact.name}
+                        email={contact.email}
+                        phone={contact.phone}
+                        location={contact.location}
+                        linkedin={contact.linkedin}
+                        github={contact.github}
+                        website={contact.website}
+                        accentColor="#FFFFFF"
+                        align="left"
+                        fontFamily="Inter, Arial, sans-serif"
+                    />
                 </header>
             </EntryBlock>
         );
@@ -69,10 +68,12 @@ export function renderBusinessTwoColumnBlocks(resume: Resume): React.ReactNode[]
             blocks.push(
                 <EntryBlock key={section.id} type="summary" id={section.id}>
                     <section className="px-8 py-4">
-                        <TwoColSectionTitle label="Summary" accent={ACCENT} />
-                        <p className="text-[12px] leading-relaxed text-gray-600 mt-2">
-                            {(section as SummarySection).content}
-                        </p>
+                        <ResumeSummary
+                            content={(section as SummarySection).content}
+                            accentColor={ACCENT}
+                            fontFamily="Inter, Arial, sans-serif"
+                            headingLabel="Summary"
+                        />
                     </section>
                 </EntryBlock>
             );

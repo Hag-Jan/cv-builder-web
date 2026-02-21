@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getTemplate } from '@/lib/pdf/templateEngine';
+import { ResumeV2 as Resume } from '@/types/resume-schema-v2';
 import React from 'react';
 
 // Use a simple in-memory cache for the "render" data
@@ -34,28 +35,33 @@ export async function GET(req: NextRequest) {
         });
     }
 
-    const resumeRaw = renderCache.get(id);
+    const resumeRaw = renderCache.get(id) as Resume;
+    const { sanitizeResumeObject } = await import('@/lib/utils/sanitizer');
 
-    // Sanitize resume data to fix extra injected text bugs
-    const sanitizeText = (text: string | null | undefined): string => {
-        if (!text) return "";
-        return text.replace(/<[^>]*>?/gm, '').replace(/\n\s*\n/g, '\n').trim();
-    };
+    // 1. Filter out duplicate sections (common source of "duplicated text" bug)
+    // We only treat specific sections as singletons.
+    const singletonTypes = ['contact', 'summary', 'experience', 'education', 'skills', 'projects'];
+    const seenTypes = new Set<string>();
+    const seenIds = new Set<string>();
 
-    const sanitizeObject = (obj: any): any => {
-        if (typeof obj === 'string') return sanitizeText(obj);
-        if (Array.isArray(obj)) return obj.map(sanitizeObject);
-        if (obj !== null && typeof obj === 'object') {
-            const newObj: any = {};
-            for (const key in obj) {
-                newObj[key] = sanitizeObject(obj[key]);
-            }
-            return newObj;
+    const filteredSections = resumeRaw.sections.filter((section: any) => {
+        // Prevent exact ID duplicates first
+        if (seenIds.has(section.id)) return false;
+        seenIds.add(section.id);
+
+        // Then handle singleton type duplicates
+        if (singletonTypes.includes(section.type)) {
+            if (seenTypes.has(section.type)) return false;
+            seenTypes.add(section.type);
         }
-        return obj;
-    };
+        return true;
+    });
 
-    const resume = sanitizeObject(resumeRaw);
+    // 2. Comprehensive Sanitization
+    const resume = {
+        ...sanitizeResumeObject(resumeRaw),
+        sections: filteredSections.map(s => sanitizeResumeObject(s))
+    };
 
     const { HtmlComponent } = getTemplate(resume.templateId);
 
@@ -74,34 +80,44 @@ export async function GET(req: NextRequest) {
             
             @page {
                 size: A4;
-                margin: 0.75in;
+                margin: 0; /* Let body handle margins for cross-page consistency */
+            }
+
+            html, body {
+                margin: 0;
+                padding: 0;
+                width: 210mm; /* Strict A4 width */
+                background: white;
             }
 
             body { 
                 font-family: 'Inter', sans-serif;
-                margin: 0;
-                padding: 0;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
 
             .resume-container {
-                width: 100%;
-                background: white;
+                width: 210mm;
+                /* Standard resume margins: ~0.75in */
+                padding: 19mm; 
+                min-height: 297mm;
+                box-sizing: border-box;
             }
 
             /* Prevent sections from breaking across pages in an ugly way */
             .resume-entry-block {
                 page-break-inside: avoid;
                 break-inside: avoid;
-                margin-bottom: 0.5rem;
+                margin-bottom: 0.2rem;
             }
 
-            /* Ensure consistent top margin on second page and beyond */
             @media print {
                 html, body {
                     height: auto;
                     overflow: visible;
+                }
+                .resume-container {
+                    padding: 19mm;
                 }
             }
         </style>

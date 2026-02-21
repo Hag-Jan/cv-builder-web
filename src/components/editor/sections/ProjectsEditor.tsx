@@ -7,8 +7,9 @@ import type { ProjectsSectionV2, ProjectItemV2 } from "@/types/resume-schema-v2"
 import { v4 as uuidv4 } from "uuid";
 import { Plus, Trash2, FolderGit2, Link as LinkIcon, Code2, ListTodo, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/Input";
+import { SafeLocalDebouncedInput } from "@/components/ui/SafeLocalDebouncedInput";
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { AISuggestionsPopover } from "@/components/ai/AISuggestionsPopover";
 
 const LexicalRichText = dynamic(() => import("../LexicalRichText").then((mod) => mod.LexicalRichText), {
@@ -40,15 +41,22 @@ export function ProjectsEditor({ section }: { section: ProjectsSectionV2 }) {
         });
     };
 
-    const updateItem = (itemId: string, updates: Partial<ProjectItemV2>) => {
+    const updateItem = useCallback((itemId: string, updates: Partial<ProjectItemV2>) => {
         updateSection(section.id, (prev) => {
             const casted = prev as ProjectsSectionV2;
-            const newItems = casted.items.map((item) =>
-                item.id === itemId ? { ...item, ...updates } : item
+            const item = casted.items.find(i => i.id === itemId);
+            if (!item) return prev;
+
+            // Check if actual change happened
+            const hasChange = Object.keys(updates).some(key => (item as any)[key] !== (updates as any)[key]);
+            if (!hasChange) return prev;
+
+            const newItems = casted.items.map((it) =>
+                it.id === itemId ? { ...it, ...updates } : it
             );
             return { ...casted, items: newItems };
         });
-    };
+    }, [section.id, updateSection]);
 
     const removeItem = (itemId: string) => {
         updateSection(section.id, (prev) => {
@@ -105,30 +113,37 @@ export function ProjectsEditor({ section }: { section: ProjectsSectionV2 }) {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-1">
                                     <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-tight">Project Name</label>
-                                    <Input
+                                    <SafeLocalDebouncedInput
                                         value={item.name}
-                                        onChange={(e) => updateItem(item.id, { name: e.target.value })}
-                                        placeholder="E-commerce Platform"
+                                        onChange={(val) => updateItem(item.id, { name: val })}
+                                        isInvalid={!item.name.trim()}
+                                        placeholder="Project Name"
+                                        label="project-name"
+                                        debounceTime={1500}
                                     />
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-tight flex items-center gap-1">
                                         <LinkIcon size={10} /> Project Link
                                     </label>
-                                    <Input
+                                    <SafeLocalDebouncedInput
                                         value={item.link || ""}
-                                        onChange={(e) => updateItem(item.id, { link: e.target.value })}
+                                        onChange={(val) => updateItem(item.id, { link: val })}
                                         placeholder="https://github.com/..."
+                                        label="project-link"
+                                        debounceTime={1500}
                                     />
                                 </div>
                                 <div className="md:col-span-2 space-y-1">
                                     <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-tight flex items-center gap-1">
                                         <Code2 size={10} /> Tech Stack (comma separated)
                                     </label>
-                                    <Input
+                                    <SafeLocalDebouncedInput
                                         value={item.techStack?.join(", ") || ""}
-                                        onChange={(e) => updateItem(item.id, { techStack: e.target.value.split(",").map(t => t.trim()).filter(Boolean) })}
+                                        onChange={(val) => updateItem(item.id, { techStack: val.split(",").map(t => t.trim()).filter(Boolean) })}
                                         placeholder="Next.js, Tailwind, TypeScript"
+                                        label="project-tech"
+                                        debounceTime={1500}
                                     />
                                 </div>
                             </div>

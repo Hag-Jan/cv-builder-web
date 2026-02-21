@@ -4,6 +4,7 @@ import { useResume } from "@/contexts/ResumeContext";
 import type { CustomSectionV2 } from "@/types/resume-schema-v2";
 import { Plus, Trash2, GripVertical, Type } from "lucide-react";
 import { Input } from "@/components/ui/Input";
+import { SafeLocalDebouncedInput } from "@/components/ui/SafeLocalDebouncedInput";
 
 /**
  * CustomSectionEditor
@@ -61,10 +62,13 @@ export function CustomSectionEditor({ section }: { section: CustomSectionV2 }) {
                     <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-tight">
                         Section Title
                     </label>
-                    <Input
+                    <SafeLocalDebouncedInput
                         value={section.title}
-                        onChange={(e) => updateTitle(e.target.value)}
-                        placeholder="e.g. References, Hobbies, Awards"
+                        onChange={updateTitle}
+                        isInvalid={!section.title.trim()}
+                        placeholder="Certifications"
+                        label="custom-title"
+                        debounceTime={1500}
                     />
                 </div>
 
@@ -86,10 +90,12 @@ export function CustomSectionEditor({ section }: { section: CustomSectionV2 }) {
                                     <GripVertical size={14} />
                                 </div>
                                 <div className="flex-1">
-                                    <Input
+                                    <SafeLocalDebouncedInput
                                         value={item}
-                                        onChange={(e) => updateContentItem(index, e.target.value)}
-                                        placeholder="Enter details..."
+                                        onChange={(val) => updateContentItem(index, val)}
+                                        placeholder="AWS Certified Solutions Architect"
+                                        label={`custom-item-${index}`}
+                                        debounceTime={1500}
                                     />
                                 </div>
                                 <button

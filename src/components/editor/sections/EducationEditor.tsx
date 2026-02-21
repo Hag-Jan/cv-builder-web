@@ -1,10 +1,11 @@
 "use client";
 
+import { useState, useCallback } from "react";
 import { useResume } from "@/contexts/ResumeContext";
 import type { EducationSectionV2, EducationItemV2 } from "@/types/resume-schema-v2";
 import { v4 as uuidv4 } from "uuid";
 import { Plus, Trash2, GraduationCap, Calendar, Award, BarChart } from "lucide-react";
-import { Input } from "@/components/ui/Input";
+import { SafeLocalDebouncedInput } from "@/components/ui/SafeLocalDebouncedInput";
 import { MonthYearPicker } from "../inputs/MonthYearPicker";
 
 export function EducationEditor({ section }: { section: EducationSectionV2 }) {
@@ -28,15 +29,22 @@ export function EducationEditor({ section }: { section: EducationSectionV2 }) {
         });
     };
 
-    const updateItem = (itemId: string, updates: Partial<EducationItemV2>) => {
+    const updateItem = useCallback((itemId: string, updates: Partial<EducationItemV2>) => {
         updateSection(section.id, (prev) => {
             const casted = prev as EducationSectionV2;
-            const newItems = casted.items.map((item) =>
-                item.id === itemId ? { ...item, ...updates } : item
+            const item = casted.items.find(i => i.id === itemId);
+            if (!item) return prev;
+
+            // Check if actual change happened
+            const hasChange = Object.keys(updates).some(key => (item as any)[key] !== (updates as any)[key]);
+            if (!hasChange) return prev;
+
+            const newItems = casted.items.map((it) =>
+                it.id === itemId ? { ...it, ...updates } : it
             );
             return { ...casted, items: newItems };
         });
-    };
+    }, [section.id, updateSection]);
 
     const removeItem = (itemId: string) => {
         updateSection(section.id, (prev) => {
@@ -83,22 +91,26 @@ export function EducationEditor({ section }: { section: EducationSectionV2 }) {
                                     <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-tight mb-1">
                                         School / University <span className="text-red-500">*</span>
                                     </label>
-                                    <Input
+                                    <SafeLocalDebouncedInput
                                         value={item.school}
-                                        onChange={(e) => updateItem(item.id, { school: e.target.value })}
+                                        onChange={(val) => updateItem(item.id, { school: val })}
                                         isInvalid={!item.school.trim()}
-                                        placeholder="University of Examples"
+                                        placeholder="University of California"
+                                        label="school"
+                                        debounceTime={1500}
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-tight mb-1">
-                                        Degree / Major <span className="text-red-500">*</span>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-tight">
+                                        Degree <span className="text-red-500">*</span>
                                     </label>
-                                    <Input
+                                    <SafeLocalDebouncedInput
                                         value={item.degree}
-                                        onChange={(e) => updateItem(item.id, { degree: e.target.value })}
+                                        onChange={(val) => updateItem(item.id, { degree: val })}
                                         isInvalid={!item.degree.trim()}
-                                        placeholder="Bachelor of Science in Computer Science"
+                                        placeholder="B.S. Computer Science"
+                                        label="degree"
+                                        debounceTime={1500}
                                     />
                                 </div>
 
@@ -110,26 +122,25 @@ export function EducationEditor({ section }: { section: EducationSectionV2 }) {
                                             onChange={(val) => updateItem(item.id, { date: val })}
                                         />
                                     </div>
-                                    <div>
-                                        <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-tight flex items-center gap-1 mb-1">
-                                            <BarChart size={10} /> GPA
-                                        </label>
-                                        <Input
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-tight">GPA</label>
+                                        <SafeLocalDebouncedInput
                                             type="text"
                                             value={item.gpa || ""}
-                                            onChange={(e) => updateItem(item.id, { gpa: e.target.value })}
-                                            placeholder="3.8 / 4.0"
+                                            onChange={(val) => updateItem(item.id, { gpa: val })}
+                                            placeholder="3.8/4.0"
+                                            label="gpa"
+                                            debounceTime={1500}
                                         />
                                     </div>
-                                    <div>
-                                        <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-tight flex items-center gap-1 mb-1">
-                                            <Award size={10} /> Honors
-                                        </label>
-                                        <Input
-                                            type="text"
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-tight">Honors/Awards</label>
+                                        <SafeLocalDebouncedInput
                                             value={item.honors || ""}
-                                            onChange={(e) => updateItem(item.id, { honors: e.target.value })}
-                                            placeholder="Cum Laude"
+                                            onChange={(val) => updateItem(item.id, { honors: val })}
+                                            placeholder="Dean's List, Cum Laude"
+                                            label="honors"
+                                            debounceTime={1500}
                                         />
                                     </div>
                                 </div>

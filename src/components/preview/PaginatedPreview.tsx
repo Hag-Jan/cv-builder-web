@@ -1,196 +1,306 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useDeferredValue } from "react";
 import { A4Page } from "./A4Page";
 import type { ResumeV2 as Resume } from "@/types/resume-schema-v2";
 import { getTemplate } from "@/lib/pdf/templateEngine";
-import { refinedPaginate, PaginationBlock, BlockType } from "@/engine/pagination";
+import { refinedPaginate, BlockType } from "@/engine/pagination";
 
 interface PaginatedPreviewProps {
     resume: Resume;
     templateId: string;
+    /** true = render as one continuous scroll (Continuous mode) */
     forceContinuous?: boolean;
+    /** CSS zoom factor applied to the page stack (0.5 – 2.0) */
     zoom?: number;
 }
 
 /**
- * PaginatedPreview handles the distribution of resume blocks onto multiple A4 pages.
- * It uses a "phantom" measurement technique to determine how much content fits on each page.
- * If forceContinuous is true, it skips pagination and returns a single long page.
+ * PageLayoutBlock — structural metadata only, NO React element.
+ * Content is always rendered fresh from the `resume` prop on each React cycle
+ * so typing instantly reflects in the preview without waiting for repagination.
  */
-export const PaginatedPreview: React.FC<PaginatedPreviewProps> = ({ resume, templateId, forceContinuous = false, zoom = 1 }) => {
-    const [pages, setPages] = useState<PaginationBlock[][]>([]);
+interface PageLayoutBlock {
+    id: string;
+    type: BlockType;
+    /** Index into the array returned by template.renderBlocks(resume) */
+    blockIndex: number;
+    height: number;
+    sectionId?: string;
+    sectionTitle?: string;
+}
+
+/**
+ * PaginatedPreview — Two-track rendering for instant live preview.
+ *
+ * ┌─ Track 1 (INSTANT) ─────────────────────────────────────────────────────┐
+ * │  `liveBlocks` = template.renderBlocks(resume) — recalculated on every   │
+ * │  React render. No debounce, no state. Typing always shows immediately.   │
+ * └─────────────────────────────────────────────────────────────────────────┘
+ * ┌─ Track 2 (DEFERRED) ────────────────────────────────────────────────────┐
+ * │  `pageLayout` = the assignment of block indices to pages.               │
+ * │  Recalculated with useDeferredValue + debounce so it never blocks       │
+ * │  the UI. Re-flows ~130 ms after typing pauses.                          │
+ * └─────────────────────────────────────────────────────────────────────────┘
+ *
+ * SCALING — CSS `zoom` is applied to the page-stack wrapper.
+ * This proportionally scales pages AND the 32 px gap between them.
+ * The phantom measurement div lives OUTSIDE the zoom wrapper so that
+ * getBoundingClientRect() always returns 1:1 (unscaled) values.
+ */
+export const PaginatedPreview: React.FC<PaginatedPreviewProps> = ({
+    resume,
+    templateId,
+    forceContinuous = false,
+    zoom = 1,
+}) => {
+    // useDeferredValue lets React keep the current layout stable while computing
+    // the new one in the background — zero jank during typing.
+    const deferredResume = useDeferredValue(resume);
+    const deferredTemplateId = useDeferredValue(templateId);
+
+    const [pageLayout, setPageLayout] = useState<PageLayoutBlock[][]>([]);
     const [isMeasuring, setIsMeasuring] = useState(false);
     const [isMounted, setIsMounted] = useState(false);
     const phantomRef = useRef<HTMLDivElement>(null);
-    const template = getTemplate(templateId);
-
-    // Use a ref for blocks to avoid re-triggering measurement when blocks change during render
-    const blocksRef = useRef<React.ReactNode[]>([]);
     const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
-    useEffect(() => {
-        setIsMounted(true);
-    }, []);
+    // Template for the LIVE render (current, not deferred)
+    const template = getTemplate(templateId);
+    // Template for the DEFERRED measurement pass
+    const deferredTemplate = getTemplate(deferredTemplateId);
+
+    useEffect(() => { setIsMounted(true); }, []);
+
+    // ── Track 2: deferred page-layout computation ─────────────────────────
 
     const paginate = () => {
         if (!phantomRef.current) return;
 
-        const container = phantomRef.current;
-        const rawBlocks = template.renderBlocks ? template.renderBlocks(resume) : [];
+        const rawBlocks = deferredTemplate.renderBlocks
+            ? deferredTemplate.renderBlocks(deferredResume)
+            : [];
 
-        // If template doesn't support blocks or we want continuous, render as single page
+        // Continuous mode or template with no block support → single page
         if (rawBlocks.length === 0 || forceContinuous) {
-            const Component = template.HtmlComponent;
-            const content = forceContinuous && rawBlocks.length > 0
-                ? rawBlocks
-                : <Component key="full" resume={resume} />;
-
-            setPages([[{
-                id: "full",
-                type: "entry",
-                element: content as any,
-                height: 0
-            }]]);
+            setPageLayout([[{ id: "full", type: "entry", blockIndex: 0, height: 0 }]]);
             setIsMeasuring(false);
             return;
         }
 
-        // Phase 1: Measurement
         setIsMeasuring(true);
-        blocksRef.current = rawBlocks;
 
-        // Small delay to let blocks render in phantom container
+        // Wait one frame for the phantom container to populate, then measure.
+        // Phantom is outside the zoom wrapper → measurements are always 1:1.
         setTimeout(() => {
             if (!phantomRef.current) return;
-            const blockElements = Array.from(phantomRef.current.children) as HTMLElement[];
 
-            const measuredBlocks: PaginationBlock[] = blockElements.map((el, index) => {
+            const blockEls = Array.from(phantomRef.current.children) as HTMLElement[];
+            const measured = blockEls.map((el, index) => {
                 const rect = el.getBoundingClientRect();
                 const style = window.getComputedStyle(el);
-
-                // Capture height + vertical margins (important for accurate layout)
                 const marginTop = parseFloat(style.marginTop) || 0;
                 const marginBottom = parseFloat(style.marginBottom) || 0;
-                const fullHeight = rect.height + marginTop + marginBottom;
-
-                const type = el.getAttribute("data-block-type") as BlockType || "entry";
-                const id = el.getAttribute("data-block-id") || `block-${index}`;
-                const sectionId = el.getAttribute("data-section-id") || undefined;
-                const sectionTitle = el.getAttribute("data-section-title") || undefined;
 
                 return {
-                    id,
-                    type,
+                    id: el.getAttribute("data-block-id") || `block-${index}`,
+                    type: (el.getAttribute("data-block-type") as BlockType) || "entry",
+                    blockIndex: index,
+                    height: rect.height + marginTop + marginBottom,
+                    sectionId: el.getAttribute("data-section-id") || undefined,
+                    sectionTitle: el.getAttribute("data-section-title") || undefined,
+                    // `element` is required by the pagination engine signature only
                     element: rawBlocks[index],
-                    height: fullHeight,
-                    sectionId,
-                    sectionTitle
                 };
             });
 
-            // Phase 2: Pagination using refined engine
-            const paginatedNodes = refinedPaginate(measuredBlocks);
+            const pages = refinedPaginate(measured);
 
-            setPages(paginatedNodes);
+            // Store only structure — strip the element, rebuild from liveBlocks on render
+            setPageLayout(
+                pages.map((page) =>
+                    page.map((b) => ({
+                        id: b.id,
+                        type: b.type,
+                        blockIndex: (b as any).blockIndex ?? 0,
+                        height: b.height,
+                        sectionId: b.sectionId,
+                        sectionTitle: b.sectionTitle,
+                    }))
+                )
+            );
             setIsMeasuring(false);
-        }, 150);
+        }, 80);
     };
 
     useEffect(() => {
-        if (debounceTimer.current) {
-            clearTimeout(debounceTimer.current);
-        }
+        if (debounceTimer.current) clearTimeout(debounceTimer.current);
+        debounceTimer.current = setTimeout(paginate, 50);
+        return () => { if (debounceTimer.current) clearTimeout(debounceTimer.current); };
+    }, [deferredResume, deferredTemplateId, forceContinuous]);
 
-        // Small delay to ensure template and resume are stable
-        debounceTimer.current = setTimeout(() => {
-            paginate();
-        }, 300);
+    // ── Track 1: live block elements (always current) ─────────────────────
 
-        return () => {
-            if (debounceTimer.current) clearTimeout(debounceTimer.current);
-        };
-    }, [resume, templateId, forceContinuous]); // Triggers when resume content, template, or view mode changes
+    // Rebuild from the current (non-deferred) resume on every render.
+    // No state, no debounce — changes appear synchronously on the next frame.
+    const liveBlocks: React.ReactNode[] = template.renderBlocks
+        ? template.renderBlocks(resume)
+        : [];
+
+    // ── Render ─────────────────────────────────────────────────────────────
 
     if (!isMounted) {
         return (
-            <div className="flex flex-col items-center bg-transparent py-10 min-h-full">
-                <div className="flex flex-col items-center justify-center p-20 text-gray-400">
-                    <p>Loading preview...</p>
-                </div>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "40px 0" }}>
+                <p style={{ color: "#9CA3AF" }}>Loading preview...</p>
             </div>
         );
     }
 
-    return (
-        <div className="flex flex-col items-center bg-transparent py-10 min-h-full">
-            {/* Multi-page Warning */}
-            {pages.length > 1 && (
-                <div className="mb-6 px-4 py-2 bg-amber-50 border border-amber-200 rounded-md shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
-                    <p className="text-amber-800 text-[11px] font-bold uppercase tracking-wider flex items-center gap-2">
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                        Resume exceeds 1 page ({pages.length} pages)
-                    </p>
-                </div>
-            )}
-
-            {/* Real Pages */}
-            {pages.map((pageBlocks, pageIndex) => (
-                <A4Page key={pageIndex} isContinuous={forceContinuous} zoom={zoom}>
-                    <div className="resume-content-wrapper flex flex-col h-full">
-                        {pageBlocks.map((block, blockIndex) => {
-                            const isContinued = pageIndex > 0 &&
-                                blockIndex === 0 &&
-                                block.type !== "header" &&
-                                !!block.sectionId &&
-                                pages[pageIndex - 1].some(pb => pb.sectionId === block.sectionId);
-
-                            return (
-                                <React.Fragment key={block.id}>
-                                    {isContinued && (
-                                        <div className="mb-4 border-b border-gray-100 pb-1">
-                                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">
-                                                {block.sectionTitle} (Continued)
-                                            </span>
-                                        </div>
-                                    )}
-                                    <div className={pageIndex > 0 && blockIndex === 0 && !isContinued ? "mt-4" : ""}>
-                                        {block.element}
-                                    </div>
-                                </React.Fragment>
-                            );
-                        })}
-                    </div>
+    // ── Continuous mode (one long page, no clips) ─────────────────────────
+    if (forceContinuous) {
+        const Component = template.HtmlComponent;
+        return (
+            <div style={{ zoom } as React.CSSProperties}>
+                <A4Page isContinuous>
+                    {liveBlocks.length > 0 ? liveBlocks : <Component resume={resume} />}
                 </A4Page>
-            ))}
+            </div>
+        );
+    }
 
-            {/* Hidden container for measuring block heights */}
+    // ── Paginated mode (default) ───────────────────────────────────────────
+    return (
+        <>
+            {/*
+             * zoom is applied here so pages + the 32px marginBottom gap between
+             * pages all scale together. No transform:scale is used — CSS zoom
+             * is reflow-aware and scrollbars update correctly.
+             *
+             * The phantom div is a SIBLING outside this wrapper (see below)
+             * so its getBoundingClientRect() values are never affected by zoom.
+             */}
             <div
-                ref={phantomRef}
-                className="absolute flex flex-col opacity-0 pointer-events-none"
                 style={{
-                    width: "170mm", // 210mm - 2*20mm padding
-                    top: -10000,
-                    left: -10000,
-                    padding: "0",
-                    position: "absolute",
-                    visibility: "hidden",
-                    // Inject template font and base styles for accurate measurement
-                    fontFamily: template.theme?.fontFamily || "Inter, Arial, sans-serif",
-                    fontSize: `${template.theme?.fontSize?.body}pt` || "10pt",
-                }}
+                    zoom,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    padding: "40px 0",
+                    minHeight: "100%",
+                } as React.CSSProperties}
             >
-                {template.renderBlocks ? template.renderBlocks(resume) : null}
+                {/* Multi-page badge */}
+                {pageLayout.length > 1 && (
+                    <div style={{
+                        display: "flex", alignItems: "center", gap: 8,
+                        marginBottom: 24, padding: "6px 16px",
+                        background: "#fffbeb", border: "1px solid #fde68a",
+                        borderRadius: 6, color: "#92400e",
+                        fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em",
+                    }}>
+                        <svg width={16} height={16} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        Resume exceeds 1 page ({pageLayout.length} pages)
+                    </div>
+                )}
+
+                {/* Pages */}
+                {pageLayout.length === 0 ? (
+                    // Initial load: show a single page skeleton while measuring
+                    isMeasuring ? (
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: 80, color: "#9CA3AF" }}>
+                            <div style={{
+                                width: 32, height: 32, borderRadius: "50%",
+                                border: "2px solid #D1D5DB", borderTopColor: "#2563EB",
+                                animation: "spin 0.7s linear infinite", marginBottom: 16,
+                            }} />
+                            <p style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em" }}>
+                                Preparing preview…
+                            </p>
+                        </div>
+                    ) : (
+                        // Fallback: no layout yet, show full component
+                        <A4Page>
+                            <template.HtmlComponent resume={resume} />
+                        </A4Page>
+                    )
+                ) : (
+                    pageLayout.map((pageBlocks, pageIndex) => (
+                        <A4Page key={pageIndex}>
+                            {pageBlocks.map((block, blockIndex) => {
+                                const isContinued =
+                                    pageIndex > 0 &&
+                                    blockIndex === 0 &&
+                                    block.type !== "header" &&
+                                    !!block.sectionId &&
+                                    pageLayout[pageIndex - 1].some((pb) => pb.sectionId === block.sectionId);
+
+                                // Fetch live element — always current, no snapshot lag
+                                const liveElement = liveBlocks[block.blockIndex] ?? null;
+
+                                return (
+                                    <React.Fragment key={block.id}>
+                                        {/* "(Continued)" header for split sections */}
+                                        {isContinued && (
+                                            <div style={{ marginBottom: 12, borderBottom: "1px solid #F3F4F6", paddingBottom: 4 }}>
+                                                <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: "#9CA3AF" }}>
+                                                    {block.sectionTitle} (Continued)
+                                                </span>
+                                            </div>
+                                        )}
+                                        {/*
+                                         * Top margin on the very first block of pages 2+ ensures the
+                                         * content doesn't start flush against the top page edge.
+                                         * 16px ≈ the visual breathing room a reader expects.
+                                         */}
+                                        <div style={pageIndex > 0 && blockIndex === 0 && !isContinued
+                                            ? { marginTop: 16 }
+                                            : undefined}
+                                        >
+                                            {liveElement}
+                                        </div>
+                                    </React.Fragment>
+                                );
+                            })}
+                        </A4Page>
+                    ))
+                )}
             </div>
 
-            {isMeasuring && pages.length === 0 && (
-                <div className="flex flex-col items-center justify-center p-20 text-gray-400">
-                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-blue-600 mb-4" />
-                    <p className="text-xs font-bold uppercase tracking-widest">Preparing preview...</p>
-                </div>
-            )}
-        </div>
+            {/*
+             * PHANTOM CONTAINER
+             * ─────────────────
+             * Must be a SIBLING of the zoom wrapper (not a child) so that
+             * getBoundingClientRect() is never affected by the parent's CSS zoom.
+             * Uses position:fixed + off-screen coordinates to stay out of layout flow
+             * and not cause scroll side-effects.
+             */}
+            <div
+                ref={phantomRef}
+                style={{
+                    position: "fixed",
+                    top: -99999,
+                    left: -99999,
+                    width: "170mm",       // 210mm – 2×20mm side padding
+                    padding: 0,
+                    margin: 0,
+                    visibility: "hidden",
+                    pointerEvents: "none",
+                    display: "flex",
+                    flexDirection: "column",
+                    fontFamily: deferredTemplate.theme?.fontFamily || "Inter, Arial, sans-serif",
+                    fontSize: deferredTemplate.theme?.fontSize?.body
+                        ? `${deferredTemplate.theme.fontSize.body}pt`
+                        : "10pt",
+                }}
+            >
+                {deferredTemplate.renderBlocks
+                    ? deferredTemplate.renderBlocks(deferredResume)
+                    : null}
+            </div>
+        </>
     );
 };

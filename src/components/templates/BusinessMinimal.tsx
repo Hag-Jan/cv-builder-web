@@ -11,6 +11,8 @@ import type {
 } from "@/types/resume-schema-v2";
 import { formatDate } from "@/lib/utils/date-formatter";
 import { EntryBlock } from "../preview/EntryBlock";
+import { ResumeHeader } from "../preview/ResumeHeader";
+import { ResumeSummary } from "../preview/ResumeSummary";
 
 // ─────────────────────────────────────────────────────────
 // Business Minimal — single column, ultra-clean, generous whitespace
@@ -30,25 +32,17 @@ export function renderBusinessMinimalBlocks(resume: Resume): React.ReactNode[] {
     if (contact) {
         blocks.push(
             <EntryBlock key="contact" type="contact" id="contact">
-                <header className="mb-10">
-                    <h1 className="text-[30px] font-bold text-gray-900 tracking-tight mb-1">
-                        {contact.name}
-                    </h1>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-gray-400 font-medium">
-                        {contact.email && <span>{contact.email}</span>}
-                        {contact.phone && <span>{contact.phone}</span>}
-                        {contact.location && <span>{contact.location}</span>}
-                        {contact.linkedin && (
-                            <span>{contact.linkedin.replace(/^https?:\/\/(www\.)?/, "")}</span>
-                        )}
-                        {contact.github && (
-                            <span>{contact.github.replace(/^https?:\/\/(www\.)?/, "")}</span>
-                        )}
-                        {contact.website && (
-                            <span>{contact.website.replace(/^https?:\/\/(www\.)?/, "")}</span>
-                        )}
-                    </div>
-                </header>
+                <ResumeHeader
+                    name={contact.name}
+                    email={contact.email}
+                    phone={contact.phone}
+                    location={contact.location}
+                    linkedin={contact.linkedin}
+                    github={contact.github}
+                    website={contact.website}
+                    align="left"
+                    fontFamily="Inter, Arial, sans-serif"
+                />
             </EntryBlock>
         );
     }
@@ -61,12 +55,11 @@ export function renderBusinessMinimalBlocks(resume: Resume): React.ReactNode[] {
         if (section.type === "summary" && (section as SummarySection).content) {
             blocks.push(
                 <EntryBlock key={section.id} type="summary" id={section.id}>
-                    <section className="mb-8">
-                        <MinimalSectionTitle label="Summary" />
-                        <p className="text-[13px] leading-relaxed text-gray-600 mt-3">
-                            {(section as SummarySection).content}
-                        </p>
-                    </section>
+                    <ResumeSummary
+                        content={(section as SummarySection).content}
+                        fontFamily="Inter, Arial, sans-serif"
+                        headingLabel="Summary"
+                    />
                 </EntryBlock>
             );
         }

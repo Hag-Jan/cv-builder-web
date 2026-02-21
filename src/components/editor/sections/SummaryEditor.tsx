@@ -6,6 +6,7 @@ import { Sparkles, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { generateAisummary } from "@/lib/ai/actions";
 import { Textarea } from "@/components/ui/Textarea";
+import { SafeLocalDebouncedTextarea } from "@/components/ui/SafeLocalDebouncedInput";
 
 export function SummaryEditor({ section }: { section: SummarySection }) {
     const { resume, updateSection } = useResume();
@@ -48,11 +49,16 @@ export function SummaryEditor({ section }: { section: SummarySection }) {
             </div>
 
             <div className="relative group">
-                <Textarea
+                <SafeLocalDebouncedTextarea
                     value={section.content || ""}
-                    onChange={(e) => updateSection(section.id, (prev) => ({ ...prev, content: e.target.value } as SummarySection))}
+                    onChange={(val) => updateSection(section.id, (prev) => {
+                        if ((prev as any).content === val) return prev;
+                        return { ...prev, content: val } as SummarySection;
+                    })}
                     className="h-44 p-4 rounded-xl leading-relaxed font-medium"
                     placeholder="Results-driven professional with experience in..."
+                    debounceTime={1500}
+                    label="summary"
                 />
                 <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
                     <p className="text-[10px] font-bold text-gray-300 uppercase">{(section.content || "").length} chars</p>

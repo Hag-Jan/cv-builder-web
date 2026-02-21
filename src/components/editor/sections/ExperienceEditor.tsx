@@ -8,8 +8,9 @@ import dynamic from "next/dynamic";
 import { AISuggestionsPopover } from "@/components/ai/AISuggestionsPopover";
 import { v4 as uuidv4 } from "uuid";
 import { Sparkles, Loader2, Plus, Trash2, MapPin, Calendar, Briefcase } from "lucide-react";
-import { useState } from "react";
+import { useState, useCallback, memo } from "react";
 import { Input } from "@/components/ui/Input";
+import { SafeLocalDebouncedInput } from "@/components/ui/SafeLocalDebouncedInput";
 import { MonthYearPicker } from "../inputs/MonthYearPicker";
 
 const LexicalRichText = dynamic(() => import("../LexicalRichText").then((mod) => mod.LexicalRichText), {
@@ -44,15 +45,22 @@ export function ExperienceEditor({ section }: { section: ExperienceSectionV2 }) 
         });
     };
 
-    const updateItem = (itemId: string, updates: Partial<ExperienceItemV2>) => {
+    const updateItem = useCallback((itemId: string, updates: Partial<ExperienceItemV2>) => {
         updateSection(section.id, (prev) => {
             const casted = prev as ExperienceSectionV2;
-            const newItems = casted.items.map((item) =>
-                item.id === itemId ? { ...item, ...updates } : item
+            const item = casted.items.find(i => i.id === itemId);
+            if (!item) return prev;
+
+            // Check if actual change happened
+            const hasChange = Object.keys(updates).some(key => (item as any)[key] !== (updates as any)[key]);
+            if (!hasChange) return prev;
+
+            const newItems = casted.items.map((it) =>
+                it.id === itemId ? { ...it, ...updates } : it
             );
             return { ...casted, items: newItems };
         });
-    };
+    }, [section.id, updateSection]);
 
     const removeItem = (itemId: string) => {
         updateSection(section.id, (prev) => {
@@ -127,32 +135,38 @@ export function ExperienceEditor({ section }: { section: ExperienceSectionV2 }) 
                                     <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-tight">
                                         Company <span className="text-red-500">*</span>
                                     </label>
-                                    <Input
+                                    <SafeLocalDebouncedInput
                                         value={item.company}
-                                        onChange={(e) => updateItem(item.id, { company: e.target.value })}
+                                        onChange={(val) => updateItem(item.id, { company: val })}
                                         isInvalid={!item.company.trim()}
                                         placeholder="Google"
+                                        label="company"
+                                        debounceTime={1500}
                                     />
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-tight">
                                         Role <span className="text-red-500">*</span>
                                     </label>
-                                    <Input
+                                    <SafeLocalDebouncedInput
                                         value={item.role}
-                                        onChange={(e) => updateItem(item.id, { role: e.target.value })}
+                                        onChange={(val) => updateItem(item.id, { role: val })}
                                         isInvalid={!item.role.trim()}
                                         placeholder="Senior Engineer"
+                                        label="role"
+                                        debounceTime={1500}
                                     />
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-tight flex items-center gap-1">
                                         <MapPin size={10} /> Location
                                     </label>
-                                    <Input
+                                    <SafeLocalDebouncedInput
                                         value={item.location || ""}
-                                        onChange={(e) => updateItem(item.id, { location: e.target.value })}
+                                        onChange={(val) => updateItem(item.id, { location: val })}
                                         placeholder="San Francisco, CA"
+                                        label="location"
+                                        debounceTime={1500}
                                     />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">

@@ -11,6 +11,8 @@ import type {
 } from "@/types/resume-schema-v2";
 import { formatDate } from "@/lib/utils/date-formatter";
 import { EntryBlock } from "../preview/EntryBlock";
+import { ResumeHeader } from "../preview/ResumeHeader";
+import { ResumeSummary } from "../preview/ResumeSummary";
 
 // ─────────────────────────────────────────────────────────
 // Business Classic — ATS-safe, single column, serif, conservative
@@ -30,27 +32,17 @@ export function renderBusinessClassicBlocks(resume: Resume): React.ReactNode[] {
     if (contact) {
         blocks.push(
             <EntryBlock key="contact" type="contact" id="contact">
-                <header className="mb-8 text-center">
-                    <h1 className="text-[26px] font-bold uppercase tracking-widest mb-1">
-                        {contact.name}
-                    </h1>
-                    <div
-                        className="border-t-2 border-b-2 border-black py-1.5 my-2 flex flex-wrap justify-center gap-x-5 gap-y-1 text-[11px] font-medium"
-                    >
-                        {contact.email && <span>{contact.email}</span>}
-                        {contact.phone && <span>{contact.phone}</span>}
-                        {contact.location && <span>{contact.location}</span>}
-                        {contact.linkedin && (
-                            <span>{contact.linkedin.replace(/^https?:\/\/(www\.)?/, "")}</span>
-                        )}
-                        {contact.github && (
-                            <span>{contact.github.replace(/^https?:\/\/(www\.)?/, "")}</span>
-                        )}
-                        {contact.website && (
-                            <span>{contact.website.replace(/^https?:\/\/(www\.)?/, "")}</span>
-                        )}
-                    </div>
-                </header>
+                <ResumeHeader
+                    name={contact.name}
+                    email={contact.email}
+                    phone={contact.phone}
+                    location={contact.location}
+                    linkedin={contact.linkedin}
+                    github={contact.github}
+                    website={contact.website}
+                    align="center"
+                    fontFamily='Georgia, "Times New Roman", serif'
+                />
             </EntryBlock>
         );
     }
@@ -69,12 +61,10 @@ export function renderBusinessClassicBlocks(resume: Resume): React.ReactNode[] {
                     sectionId={section.id}
                     sectionTitle="Professional Summary"
                 >
-                    <section className="mb-6">
-                        <ClassicSectionTitle label="Professional Summary" />
-                        <p className="text-[12px] leading-relaxed text-gray-800 mt-2">
-                            {(section as SummarySection).content}
-                        </p>
-                    </section>
+                    <ResumeSummary
+                        content={(section as SummarySection).content}
+                        fontFamily='Georgia, "Times New Roman", serif'
+                    />
                 </EntryBlock>
             );
         }

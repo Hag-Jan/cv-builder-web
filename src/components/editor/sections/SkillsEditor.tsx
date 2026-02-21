@@ -7,6 +7,7 @@ import dynamic from "next/dynamic";
 import { v4 as uuidv4 } from "uuid";
 import { Plus, Trash2, Zap, Layers } from "lucide-react";
 import { Input } from "@/components/ui/Input";
+import { SafeLocalDebouncedInput } from "@/components/ui/SafeLocalDebouncedInput";
 
 const LexicalRichText = dynamic(() => import("../LexicalRichText").then((mod) => mod.LexicalRichText), {
     ssr: false,
@@ -76,11 +77,13 @@ export function SkillsEditor({ section }: { section: SkillsSectionV2 }) {
                         <div className="bg-gray-50/50 dark:bg-gray-800/50 px-4 py-2 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center gap-4">
                             <div className="flex items-center gap-2 flex-1">
                                 <Layers size={14} className="text-gray-400" />
-                                <Input
+                                <SafeLocalDebouncedInput
                                     value={cat.label}
-                                    onChange={(e) => updateCategory(cat.id, { label: e.target.value })}
+                                    onChange={(val) => updateCategory(cat.id, { label: val })}
                                     className="bg-transparent border-none focus-visible:ring-0 focus-visible:border-transparent px-0 h-auto font-semibold text-sm text-gray-700 dark:text-gray-200"
                                     placeholder="Category Name (e.g. Languages)"
+                                    label="skill-category"
+                                    debounceTime={1500}
                                 />
                             </div>
                             <button onClick={() => removeCategory(cat.id)} className="text-gray-400 hover:text-red-500 transition-colors">

@@ -10,29 +10,19 @@ type SaveStatus = "idle" | "unsaved" | "saving" | "saved" | "error";
  * and status state to prevent unnecessary re-renders of the parent components.
  */
 export default function AutosaveIndicator() {
-    const { resume, saveResume } = useResume();
+    const { resume, saveResume, lastUpdate } = useResume();
     const [status, setStatus] = useState<SaveStatus>("idle");
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const prevResumeRef = useRef<string | null>(null);
+    const prevUpdateRef = useRef<number>(0);
     const lastSaveIdRef = useRef<number>(0);
 
     useEffect(() => {
-        if (!resume) return;
+        if (!resume || lastUpdate === 0) return;
 
-        // Skip metadata for comparison to avoid infinite loops from updatedAt
-        const { metadata, ...significantResume } = resume;
-        const serialized = JSON.stringify(significantResume);
+        // Skip if no newer update
+        if (lastUpdate <= prevUpdateRef.current) return;
 
-        // Skip initial load
-        if (prevResumeRef.current === null) {
-            prevResumeRef.current = serialized;
-            return;
-        }
-
-        // No significant change
-        if (serialized === prevResumeRef.current) return;
-
-        prevResumeRef.current = serialized;
+        prevUpdateRef.current = lastUpdate;
         setStatus("unsaved");
 
         // Clear previous timer

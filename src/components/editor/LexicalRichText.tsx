@@ -65,18 +65,24 @@ function SynchronizationPlugin({ value }: { value: string[] }) {
 }
 
 // Plugin to extract text as string[] (one per paragraph)
-function ExtractStatePlugin({ onChange }: { onChange: (val: string[]) => void }) {
+function ExtractStatePlugin({ onChange, debounceTime = 800 }: { onChange: (val: string[]) => void, debounceTime?: number }) {
+    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
     return (
         <OnChangePlugin
             onChange={(editorState: EditorState) => {
-                editorState.read(() => {
-                    const root = $getRoot();
-                    const children = root.getChildren();
-                    const lines = children
-                        .map((child) => child.getTextContent())
-                        .filter(Boolean);
-                    onChange(lines);
-                });
+                if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+                timeoutRef.current = setTimeout(() => {
+                    editorState.read(() => {
+                        const root = $getRoot();
+                        const children = root.getChildren();
+                        const lines = children
+                            .map((child) => child.getTextContent())
+                            .filter(Boolean);
+                        onChange(lines);
+                    });
+                }, debounceTime);
             }}
         />
     );
@@ -107,7 +113,7 @@ export function LexicalRichText({
                     ErrorBoundary={(props) => <div>Error: {props.children}</div>}
                 />
                 <HistoryPlugin />
-                <ExtractStatePlugin onChange={onChange} />
+                <ExtractStatePlugin onChange={onChange} debounceTime={1500} />
                 <SynchronizationPlugin value={initialValue} />
             </div>
         </LexicalComposer>

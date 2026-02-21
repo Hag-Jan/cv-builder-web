@@ -11,6 +11,8 @@ import type {
 } from "@/types/resume-schema-v2";
 import { formatDate } from "@/lib/utils/date-formatter";
 import { EntryBlock } from "../preview/EntryBlock";
+import { ResumeHeader } from "../preview/ResumeHeader";
+import { ResumeSummary } from "../preview/ResumeSummary";
 
 // ─────────────────────────────────────────────────────────
 // Business Modern — single column, sans-serif, navy accent
@@ -33,32 +35,18 @@ export function renderBusinessModernBlocks(resume: Resume): React.ReactNode[] {
     if (contact) {
         blocks.push(
             <EntryBlock key="contact" type="contact" id="contact">
-                <header className="mb-8">
-                    <h1
-                        className="text-[28px] font-extrabold tracking-tight mb-1"
-                        style={{ color: ACCENT }}
-                    >
-                        {contact.name}
-                    </h1>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-gray-500 font-medium">
-                        {contact.email && <span>{contact.email}</span>}
-                        {contact.phone && <span>{contact.phone}</span>}
-                        {contact.location && <span>{contact.location}</span>}
-                    </div>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-gray-400 mt-0.5">
-                        {contact.linkedin && (
-                            <span>{contact.linkedin.replace(/^https?:\/\/(www\.)?/, "")}</span>
-                        )}
-                        {contact.github && (
-                            <span>{contact.github.replace(/^https?:\/\/(www\.)?/, "")}</span>
-                        )}
-                        {contact.website && (
-                            <span>{contact.website.replace(/^https?:\/\/(www\.)?/, "")}</span>
-                        )}
-                    </div>
-                    {/* Thin accent rule under header */}
-                    <div className="mt-4 h-[3px] rounded-full" style={{ backgroundColor: ACCENT }} />
-                </header>
+                <ResumeHeader
+                    name={contact.name}
+                    email={contact.email}
+                    phone={contact.phone}
+                    location={contact.location}
+                    linkedin={contact.linkedin}
+                    github={contact.github}
+                    website={contact.website}
+                    accentColor={ACCENT}
+                    align="left"
+                    fontFamily="Inter, system-ui, sans-serif"
+                />
             </EntryBlock>
         );
     }
@@ -71,12 +59,12 @@ export function renderBusinessModernBlocks(resume: Resume): React.ReactNode[] {
         if (section.type === "summary" && (section as SummarySection).content) {
             blocks.push(
                 <EntryBlock key={section.id} type="summary" id={section.id}>
-                    <section className="mb-7">
-                        <ModernSectionTitle label="Summary" accent={ACCENT} />
-                        <p className="text-[12px] leading-relaxed text-gray-600 mt-2">
-                            {(section as SummarySection).content}
-                        </p>
-                    </section>
+                    <ResumeSummary
+                        content={(section as SummarySection).content}
+                        accentColor={ACCENT}
+                        fontFamily="Inter, system-ui, sans-serif"
+                        headingLabel="Summary"
+                    />
                 </EntryBlock>
             );
         }

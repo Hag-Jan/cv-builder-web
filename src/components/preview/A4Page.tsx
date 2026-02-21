@@ -2,42 +2,59 @@ import React from "react";
 
 interface A4PageProps {
     children: React.ReactNode;
+    /** true = Continuous scroll mode (no fixed height, no page clipping) */
     isContinuous?: boolean;
-    zoom?: number;
 }
 
 /**
- * A4Page represents a single physical A4 page in the preview.
- * Dimensions are based on A4 ratio (1:1.414).
- * We use 210mm x 297mm as the standard.
+ * A4Page — one physical sheet of A4 paper in the preview.
+ *
+ * PAGINATED mode  (isContinuous=false — the default):
+ *   • Fixed 210mm × 297mm, overflow hidden, shadow.
+ *   • mb-8 provides the visible gray gap BETWEEN pages.
+ *   • Padding 20mm on all sides keeps content inside the printable area.
+ *
+ * CONTINUOUS mode (isContinuous=true):
+ *   • No fixed height — content scrolls as one long document.
+ *   • minHeight 297mm so the first page still looks like a page.
+ *   • No mb-8 or clip — content flows naturally.
+ *
+ * Scaling: CSS `zoom` is applied by the PARENT container (PaginatedPreview),
+ * which means the entire stack — pages + mb-8 gaps — scales together.
+ * No transform:scale is used here, avoiding the classic "gap collapses" bug.
  */
-export const A4Page: React.FC<A4PageProps> = ({ children, isContinuous = false, zoom = 1 }) => {
+export const A4Page: React.FC<A4PageProps> = ({ children, isContinuous = false }) => {
     return (
         <div
-            className={`bg-white mx-auto relative flex flex-col ${isContinuous ? "" : "mb-12 shadow-xl rounded-sm ring-1 ring-gray-200"
-                }`}
             style={{
-                // Mathematical outer boundaries scaled perfectly by zoom
-                width: `calc(210mm * ${zoom})`,
-                ...(isContinuous
-                    ? { minHeight: `calc(297mm * ${zoom})`, overflow: "visible" }
-                    : { height: `calc(297mm * ${zoom})`, overflow: "hidden" }),
+                /* ── Page frame ──────────────────────────────────────── */
+                width: "210mm",
                 boxSizing: "border-box",
-                transition: "width 0.2s ease-out, height 0.2s ease-out, minHeight 0.2s ease-out"
+                backgroundColor: "#fff",
+                position: "relative",
+                flexShrink: 0,        // prevent flex parent from squashing the page
+                display: "flex",
+                flexDirection: "column",
+
+                /* Paginated: fixed A4 height, clip content that overflows */
+                ...(isContinuous
+                    ? { minHeight: "297mm", overflow: "visible" }
+                    : {
+                        height: "297mm",
+                        overflow: "hidden",
+                        /* Shadow + outline give the "paper" appearance */
+                        boxShadow: "0 4px 24px 0 rgba(0,0,0,0.10), 0 1px 4px 0 rgba(0,0,0,0.06)",
+                        borderRadius: "2px",
+                        outline: "1px solid rgba(0,0,0,0.06)",
+                        /* Gap between pages — scales with parent zoom ✓ */
+                        marginBottom: "32px",
+                    }),
+
+                /* ── Printable-area padding (mirrors PDF margins) ─────── */
+                padding: "20mm",
             } as React.CSSProperties}
         >
-            <div
-                className="origin-top-left"
-                style={{
-                    transform: `scale(${zoom})`,
-                    width: "210mm",
-                    // PDF-like padding inside the scaled space
-                    padding: "20mm",
-                    minHeight: isContinuous ? "297mm" : "100%",
-                }}
-            >
-                {children}
-            </div>
+            {children}
         </div>
     );
 };

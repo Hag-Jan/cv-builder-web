@@ -44,9 +44,13 @@ export async function generatePdfWithPuppeteer(resume: ResumeV2, options: Export
     // 2. Launch Puppeteer with requested settings
     logStep('3) Launching Puppeteer...');
     const browser = await puppeteer.launch({
-        headless: "new" as any, // "new" is the current standard for headless
-        // explicit args to avoid sandboxing issues in some envs
+        headless: "new" as any,
         args: ['--no-sandbox', '--disable-setuid-sandbox', '--font-render-hinting=none'],
+        defaultViewport: {
+            width: 794, // A4 width at 96 DPI
+            height: 1123, // A4 height at 96 DPI
+            deviceScaleFactor: 1,
+        }
     });
 
     try {
@@ -58,16 +62,14 @@ export async function generatePdfWithPuppeteer(resume: ResumeV2, options: Export
 
         await page.goto(renderUrl, {
             waitUntil: 'networkidle0',
-            timeout: 30000
+            timeout: 45000 // Increased timeout for slower environments
         });
 
         const content = await page.content();
         logStep(`4b) Page loaded. HTML length: ${content.length}`);
 
         // 4. Generate the PDF with requested format and background printing
-        // We use preferCSSPageSize: true and set margin: 0px here because
-        // we'll handle margins and sizing via @page CSS in the template
-        // for better multi-page reliability.
+        // We use preferCSSPageSize: true and let the template handle margins
         logStep('5) Generating PDF...');
         const pdfBuffer = await page.pdf({
             format: (options.paperSize || 'A4') as any,

@@ -11,6 +11,8 @@ import type {
 } from '@/types/resume-schema-v2';
 import { formatDate, ensureUrlScheme } from '@/lib/utils/date-formatter';
 import { EntryBlock } from '../preview/EntryBlock';
+import { ResumeHeader } from '../preview/ResumeHeader';
+import { ResumeSummary } from '../preview/ResumeSummary';
 
 interface ATSBaseTemplateProps {
     resume: Resume;
@@ -25,35 +27,17 @@ export function renderATSBaseBlocks(resume: Resume): React.ReactNode[] {
     if (contactSection) {
         blocks.push(
             <EntryBlock key="contact" type="contact" id="contact">
-                <div className="mb-8 text-center border-b-2 border-black pb-4">
-                    <h1 className="text-3xl font-bold mb-2 uppercase tracking-tight">{contactSection.name}</h1>
-                    <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-sm font-medium">
-                        {contactSection.email && (
-                            <a href={`mailto:${contactSection.email}`} className="hover:text-blue-600 border-b border-transparent hover:border-blue-600 transition-all">
-                                {contactSection.email}
-                            </a>
-                        )}
-                        {contactSection.phone && <span>{contactSection.phone}</span>}
-                        {contactSection.location && <span>{contactSection.location}</span>}
-                    </div>
-                    <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs mt-2 text-gray-600">
-                        {contactSection.linkedin && (
-                            <a href={ensureUrlScheme(contactSection.linkedin)} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 border-b border-transparent hover:border-blue-600 transition-all">
-                                {contactSection.linkedin.replace(/^https?:\/\/(www\.)?/, '')}
-                            </a>
-                        )}
-                        {contactSection.github && (
-                            <a href={ensureUrlScheme(contactSection.github)} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 border-b border-transparent hover:border-blue-600 transition-all">
-                                {contactSection.github.replace(/^https?:\/\/(www\.)?/, '')}
-                            </a>
-                        )}
-                        {contactSection.website && (
-                            <a href={ensureUrlScheme(contactSection.website)} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 border-b border-transparent hover:border-blue-600 transition-all">
-                                {contactSection.website.replace(/^https?:\/\/(www\.)?/, '')}
-                            </a>
-                        )}
-                    </div>
-                </div>
+                <ResumeHeader
+                    name={contactSection.name}
+                    email={contactSection.email}
+                    phone={contactSection.phone}
+                    location={contactSection.location}
+                    linkedin={contactSection.linkedin}
+                    github={contactSection.github}
+                    website={contactSection.website}
+                    align="center"
+                    fontFamily='Georgia, "Times New Roman", serif'
+                />
             </EntryBlock>
         );
     }
@@ -66,10 +50,10 @@ export function renderATSBaseBlocks(resume: Resume): React.ReactNode[] {
         if (section.type === 'summary' && (section as SummarySection).content) {
             blocks.push(
                 <EntryBlock key={section.id} type="summary" id={section.id}>
-                    <div className="mb-7">
-                        <h2 className="text-[15px] font-bold mb-2 uppercase border-b border-gray-300 pb-0.5 tracking-wide">Professional Summary</h2>
-                        <p className="text-sm leading-relaxed text-gray-800">{(section as SummarySection).content}</p>
-                    </div>
+                    <ResumeSummary
+                        content={(section as SummarySection).content}
+                        fontFamily='Georgia, "Times New Roman", serif'
+                    />
                 </EntryBlock>
             );
         }

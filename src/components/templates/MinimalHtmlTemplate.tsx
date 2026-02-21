@@ -10,6 +10,8 @@ import type {
     SummarySection
 } from "@/types/resume-schema-v2";
 import { EntryBlock } from "../preview/EntryBlock";
+import { ResumeHeader } from "../preview/ResumeHeader";
+import { ResumeSummary } from "../preview/ResumeSummary";
 
 // ─────────────────────────────────────────────────────────
 // Minimal HTML Template — Updated for ResumeV2
@@ -29,19 +31,17 @@ export function renderMinimalHtmlBlocks(resume: Resume): React.ReactNode[] {
     if (contact) {
         blocks.push(
             <EntryBlock key="contact" type="contact" id="contact">
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">{contact.name}</h1>
-                    <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-400 font-medium">
-                        <span>{contact.email}</span>
-                        {contact.phone && <span>• {contact.phone}</span>}
-                        {contact.location && <span>• {contact.location}</span>}
-                    </div>
-                    <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-400 mt-1">
-                        {contact.linkedin && <span>linkedin.com/in/{contact.linkedin.split('/').pop()}</span>}
-                        {contact.github && <span>github.com/{contact.github.split('/').pop()}</span>}
-                        {contact.website && <span>{contact.website.replace(/^https?:\/\/(www\.)?/, '')}</span>}
-                    </div>
-                </div>
+                <ResumeHeader
+                    name={contact.name}
+                    email={contact.email}
+                    phone={contact.phone}
+                    location={contact.location}
+                    linkedin={contact.linkedin}
+                    github={contact.github}
+                    website={contact.website}
+                    align="left"
+                    fontFamily="Inter, Arial, sans-serif"
+                />
             </EntryBlock>
         );
     }
@@ -53,11 +53,10 @@ export function renderMinimalHtmlBlocks(resume: Resume): React.ReactNode[] {
         if (section.type === "summary") {
             blocks.push(
                 <EntryBlock key={section.id} type="summary" id={section.id}>
-                    <div className="mb-6">
-                        <div className="mb-4">
-                            <p className="text-[13px] leading-relaxed text-gray-600">{(section as SummarySection).content}</p>
-                        </div>
-                    </div>
+                    <ResumeSummary
+                        content={(section as SummarySection).content}
+                        fontFamily="Inter, Arial, sans-serif"
+                    />
                 </EntryBlock>
             );
         }

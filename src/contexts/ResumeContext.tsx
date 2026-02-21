@@ -18,6 +18,7 @@ interface ResumeContextType {
     removeSection: (id: string) => void;
     saveResume: () => Promise<void>;
     updateTemplate: (templateId: string) => void;
+    lastUpdate: number;
 }
 
 const ResumeContext = createContext<ResumeContextType | null>(null);
@@ -118,11 +119,21 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
 
         setResume((prev) => {
             if (!prev) return null;
+            let changed = false;
             const newSections = prev.sections.map((s) => {
                 if (s.id !== sectionId) return s;
                 const next = typeof updater === "function" ? updater(s) : updater;
+
+                // Shallow equality check to avoid redundant renders
+                if (JSON.stringify(s) === JSON.stringify(next)) return s;
+
+                changed = true;
+                console.log(`[ResumeContext] Section Update (${s.type}:${sectionId}) keystroke captured`);
                 return next;
             });
+
+            if (!changed) return prev;
+
             return {
                 ...prev,
                 sections: newSections,
@@ -176,13 +187,11 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
             console.warn("LocalStorage save failed:", e);
         }
 
-        // 2. Sanitize to remove undefined values for Firestore and apply data-quality rules on save
-        const rawToSave = JSON.parse(JSON.stringify(toSave));
-
-        // Deep sanitization of specific fields on save only (trims and cleans data)
+        // 2. Deep copy and sanitize (avoid heavy JSON.parse(JSON.stringify) on main thread)
+        // We can do a simpler shallow copy + deep map for sections
         const sanitized = {
-            ...rawToSave,
-            sections: rawToSave.sections.map((section: any) => {
+            ...currentResume,
+            sections: currentResume.sections.map((section: any) => {
                 if (section.type === 'contact') {
                     return {
                         ...section,
@@ -218,8 +227,9 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
         };
 
         try {
+            console.log("[Autosave] Save Start...");
             await setDoc(doc(db, "resumes", user.uid), sanitized);
-            console.log("Resume saved successfully (v2 with sanitization)");
+            console.log(`[Autosave] Save Success (duration: ${Date.now() - startTime}ms)`);
 
             // Only update local state if no newer local changes happened during the save.
             if (lastUpdateRef.current <= startTime) {
@@ -228,10 +238,10 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
                     return { ...prev, metadata: toSave.metadata };
                 });
             } else if (process.env.NODE_ENV === "development") {
-                console.warn("[ResumeContext] Prevented DB rehydration: newer local changes detected.");
+                console.warn("[Autosave] Prevented DB rehydration: newer local changes detected.");
             }
         } catch (error) {
-            console.error("Error saving resume:", error);
+            console.error("[Autosave] Save Error:", error);
             throw error;
         }
     }, [user, setResume]);
@@ -267,6 +277,7 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
         updateSection,
         addSection,
         removeSection,
+        lastUpdate: lastUpdateRef.current,
         saveResume,
         updateTemplate
     }), [resume, loading, updateSection, addSection, removeSection, saveResume, updateTemplate]);

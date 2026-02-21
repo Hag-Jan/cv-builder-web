@@ -11,6 +11,8 @@ import type {
 } from "@/types/resume-schema-v2";
 import { formatDate, ensureUrlScheme } from "@/lib/utils/date-formatter";
 import { EntryBlock } from "../preview/EntryBlock";
+import { ResumeHeader } from "../preview/ResumeHeader";
+import { ResumeSummary } from "../preview/ResumeSummary";
 
 // ─────────────────────────────────────────────────────────
 // Modern HTML Template — sans-serif + blue accent colors
@@ -32,55 +34,18 @@ export function renderModernHtmlBlocks(resume: Resume): React.ReactNode[] {
     if (contact) {
         blocks.push(
             <EntryBlock key="contact" type="contact" id="contact">
-                <div className="mb-8 pb-6" style={{ borderBottom: `3px solid ${ACCENT}` }}>
-                    <h1
-                        className="text-3xl font-extrabold tracking-tight mb-1"
-                        style={{ color: ACCENT }}
-                    >
-                        {contact.name}
-                    </h1>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-gray-500 font-medium mt-1">
-                        {contact.email && (
-                            <a href={`mailto:${contact.email}`} className="hover:text-blue-600 transition-colors">
-                                {contact.email}
-                            </a>
-                        )}
-                        {contact.phone && <span>{contact.phone}</span>}
-                        {contact.location && <span>{contact.location}</span>}
-                    </div>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-gray-400 mt-1">
-                        {contact.linkedin && (
-                            <a
-                                href={ensureUrlScheme(contact.linkedin)}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="hover:text-blue-600 transition-colors"
-                            >
-                                {contact.linkedin.replace(/^https?:\/\/(www\.)?/, "")}
-                            </a>
-                        )}
-                        {contact.github && (
-                            <a
-                                href={ensureUrlScheme(contact.github)}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="hover:text-blue-600 transition-colors"
-                            >
-                                {contact.github.replace(/^https?:\/\/(www\.)?/, "")}
-                            </a>
-                        )}
-                        {contact.website && (
-                            <a
-                                href={ensureUrlScheme(contact.website)}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="hover:text-blue-600 transition-colors"
-                            >
-                                {contact.website.replace(/^https?:\/\/(www\.)?/, "")}
-                            </a>
-                        )}
-                    </div>
-                </div>
+                <ResumeHeader
+                    name={contact.name}
+                    email={contact.email}
+                    phone={contact.phone}
+                    location={contact.location}
+                    linkedin={contact.linkedin}
+                    github={contact.github}
+                    website={contact.website}
+                    accentColor={ACCENT}
+                    align="left"
+                    fontFamily="Inter, system-ui, sans-serif"
+                />
             </EntryBlock>
         );
     }
@@ -99,12 +64,12 @@ export function renderModernHtmlBlocks(resume: Resume): React.ReactNode[] {
                     sectionId={section.id}
                     sectionTitle="Summary"
                 >
-                    <div className="mb-7">
-                        <SectionTitle label="Summary" accent={ACCENT} />
-                        <p className="text-[13px] leading-relaxed text-gray-600 mt-2">
-                            {(section as SummarySection).content}
-                        </p>
-                    </div>
+                    <ResumeSummary
+                        content={(section as SummarySection).content}
+                        accentColor={ACCENT}
+                        fontFamily="Inter, system-ui, sans-serif"
+                        headingLabel="Summary"
+                    />
                 </EntryBlock>
             );
         }
