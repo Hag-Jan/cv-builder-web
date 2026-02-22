@@ -16,14 +16,14 @@ export const ResumeSummary: React.FC<ResumeSummaryProps> = ({
     if (!content) return null;
 
     return (
-        <div className="mb-6" style={{ fontFamily }}>
+        <div className="mb-8" style={{ fontFamily }}>
             <h2
-                className="text-[14pt] font-bold mb-6 uppercase tracking-wider border-b border-gray-300 pb-1"
-                style={{ color: accentColor }}
+                className="text-xl font-bold mb-4 uppercase tracking-widest border-b-2 border-gray-400 pb-1"
+                style={{ color: '#111827' }} // text-gray-900 equivalent for strong contrast
             >
-                {headingLabel}
+                {headingLabel === 'SUMMARY' ? 'PROFESSIONAL SUMMARY' : headingLabel}
             </h2>
-            <p className="text-[11pt] leading-[1.6] text-gray-800 text-justify">
+            <p className="text-base leading-relaxed text-gray-800 text-justify font-medium mt-2">
                 {content}
             </p>
         </div>

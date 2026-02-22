@@ -63,7 +63,7 @@ export function MonthYearPicker({
                                     month: e.target.checked ? null : (structured.month || MONTHS[new Date().getMonth()]),
                                     year: e.target.checked ? null : (structured.year || new Date().getFullYear().toString())
                                 })}
-                                className="w-3 h-3 rounded text-blue-600 focus:ring-0 border-gray-300 dark:border-gray-700 dark:bg-gray-800"
+                                className="w-3 h-3 rounded text-blue-600 focus:ring-0 border-gray-300 dark:border-gray-300 dark:bg-white"
                             />
                             <span className="text-[10px] font-bold text-gray-400 uppercase">PRESENT</span>
                         </label>
@@ -76,7 +76,7 @@ export function MonthYearPicker({
                     <select
                         value={structured.month || ""}
                         onChange={(e) => handleChange({ month: e.target.value || null })}
-                        className="flex-1 h-9 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:text-gray-100 transition-all"
+                        className="flex-1 h-9 rounded-md border border-gray-300 dark:border-gray-300 bg-white dark:bg-white px-3 py-1 text-sm text-gray-900 dark:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                     >
                         <option value="">Month</option>
                         {MONTHS.map((m) => (
@@ -86,7 +86,7 @@ export function MonthYearPicker({
                     <select
                         value={structured.year || ""}
                         onChange={(e) => handleChange({ year: e.target.value || null })}
-                        className="flex-1 h-9 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:text-gray-100 transition-all"
+                        className="flex-1 h-9 rounded-md border border-gray-300 dark:border-gray-300 bg-white dark:bg-white px-3 py-1 text-sm text-gray-900 dark:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                     >
                         <option value="">Year</option>
                         {years.map((y) => (
@@ -95,7 +95,7 @@ export function MonthYearPicker({
                     </select>
                 </div>
             ) : (
-                <div className="h-9 px-3 flex items-center bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-md text-sm text-gray-500 italic">
+                <div className="h-9 px-3 flex items-center bg-gray-50 dark:bg-gray-50 border border-gray-300 dark:border-gray-300 rounded-md text-sm text-gray-500 dark:text-gray-500 italic">
                     Currently Working Here
                 </div>
             )}

@@ -64,7 +64,6 @@ export function renderBusinessModernBlocks(resume: Resume): React.ReactNode[] {
                         content={(section as SummarySection).content}
                         accentColor={ACCENT}
                         fontFamily="Inter, system-ui, sans-serif"
-                        headingLabel="Summary"
                     />
                 </EntryBlock>
             );
@@ -80,7 +79,9 @@ export function renderBusinessModernBlocks(resume: Resume): React.ReactNode[] {
                     sectionId={section.id}
                     sectionTitle="Experience"
                 >
-                    <ModernSectionTitle label="Experience" accent={ACCENT} />
+                    <div className="mb-3">
+                        <ModernSectionTitle label="Experience" accent={ACCENT} />
+                    </div>
                 </EntryBlock>
             );
             (section as ExperienceSection).items.forEach((item) => {
@@ -92,7 +93,7 @@ export function renderBusinessModernBlocks(resume: Resume): React.ReactNode[] {
                         sectionId={section.id}
                         sectionTitle="Experience"
                     >
-                        <div className="mb-5 last:mb-7">
+                        <div className="mb-4 last:mb-6">
                             <div className="flex justify-between items-baseline">
                                 <h3 className="text-[13px] font-bold text-gray-900">{item.role}</h3>
                                 <time
@@ -105,7 +106,7 @@ export function renderBusinessModernBlocks(resume: Resume): React.ReactNode[] {
                             <div className="flex justify-between items-baseline mb-2">
                                 <p className="text-[12px] text-gray-500 font-medium">{item.company}</p>
                                 {item.location && (
-                                    <p className="text-[10px] text-gray-400 italic">{item.location}</p>
+                                    <p className="text-[10px] text-gray-500 italic">{item.location}</p>
                                 )}
                             </div>
                             {item.bullets && item.bullets.length > 0 && (
@@ -134,7 +135,9 @@ export function renderBusinessModernBlocks(resume: Resume): React.ReactNode[] {
                     sectionId={section.id}
                     sectionTitle="Education"
                 >
-                    <ModernSectionTitle label="Education" accent={ACCENT} />
+                    <div className="mb-3">
+                        <ModernSectionTitle label="Education" accent={ACCENT} />
+                    </div>
                 </EntryBlock>
             );
             (section as EducationSection).items.forEach((item) => {
@@ -146,7 +149,7 @@ export function renderBusinessModernBlocks(resume: Resume): React.ReactNode[] {
                         sectionId={section.id}
                         sectionTitle="Education"
                     >
-                        <div className="mb-3 last:mb-7">
+                        <div className="mb-4 last:mb-6">
                             <div className="flex justify-between items-baseline">
                                 <h3 className="text-[13px] font-bold text-gray-900">{item.school}</h3>
                                 <time
@@ -158,7 +161,7 @@ export function renderBusinessModernBlocks(resume: Resume): React.ReactNode[] {
                             </div>
                             <p className="text-[12px] text-gray-500">{item.degree}</p>
                             {(item.gpa || item.honors) && (
-                                <p className="text-[10px] text-gray-400 italic mt-0.5">
+                                <p className="text-[10px] text-gray-500 italic mt-0.5">
                                     {[item.gpa && `GPA: ${item.gpa}`, item.honors].filter(Boolean).join(" | ")}
                                 </p>
                             )}
@@ -172,48 +175,52 @@ export function renderBusinessModernBlocks(resume: Resume): React.ReactNode[] {
         if (section.type === "skills") {
             blocks.push(
                 <EntryBlock
-                    key={section.id}
-                    type="skills"
-                    id={section.id}
+                    key={`${section.id}-header`}
+                    type="header"
+                    id={`${section.id}-header`}
                     sectionId={section.id}
                     sectionTitle="Skills"
                 >
-                    <section className="mb-7">
-                        <ModernSectionTitle label="Skills" accent={ACCENT} />
-                        <div className="space-y-2 mt-2">
-                            {(section as SkillsSection).categories.map((cat) => (
-                                <div key={cat.id} className="text-[12px] text-gray-600">
-                                    <h3
-                                        className="text-[11px] font-bold mb-1"
-                                        style={{ color: ACCENT }}
-                                    >
-                                        {cat.label}
-                                    </h3>
-                                    <div className="flex flex-wrap gap-x-3 gap-y-1">
-                                        {cat.skills
-                                            .map(s => s.trim())
-                                            .filter(Boolean)
-                                            .map((rawSkill, i) => {
-                                                const { name, level } = parseSkillLevel(rawSkill);
-                                                return (
-                                                    <div key={i} className="flex items-center gap-1.5">
-                                                        <span style={{ color: ACCENT }}>•</span>
-                                                        <span className="text-gray-700">{name}</span>
-                                                        {level && (
-                                                            <span className="text-[9px] uppercase tracking-wider bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-sm line-height-none border border-gray-200 font-bold mt-0.5">
-                                                                {level}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                    <section className="mt-8 mb-4 px-1">
+                        <ModernSectionTitle label="Skills & Expertise" accent={ACCENT} />
                     </section>
                 </EntryBlock>
             );
+
+            (section as SkillsSection).categories.forEach((cat) => {
+                const cleanedSkills = cat.skills.map(s => s.trim()).filter(Boolean);
+                if (cleanedSkills.length === 0) return;
+
+                blocks.push(
+                    <EntryBlock key={cat.id} type="skills" id={cat.id} sectionId={section.id} sectionTitle="Skills">
+                        <div key={cat.id} className="text-[12px] text-gray-600 px-1 mb-6 last:mb-10">
+                            <h3
+                                className="text-[12px] font-bold mb-2 uppercase tracking-tight"
+                                style={{ color: ACCENT }}
+                            >
+                                {cat.label}
+                            </h3>
+                            <div className="flex flex-wrap gap-x-4 gap-y-1">
+                                {cleanedSkills.map((rawSkill, i) => {
+                                    const { name, level } = parseSkillLevel(rawSkill);
+                                    return (
+                                        <div key={i} className="flex items-center gap-1.5">
+                                            <span style={{ color: ACCENT }}>•</span>
+                                            <span className="text-gray-700">{name}</span>
+                                            {level && (
+                                                <span className="text-[9px] uppercase tracking-wider bg-gray-50 text-gray-400 px-1.5 py-0.5 rounded-sm line-height-none border border-gray-100 font-bold mt-0.5">
+                                                    {level}
+                                                </span>
+                                            )}
+                                            {i < cleanedSkills.length - 1 && <span className="text-gray-200 ml-2">/</span>}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </EntryBlock>
+                );
+            });
         }
 
         // Projects
@@ -226,7 +233,9 @@ export function renderBusinessModernBlocks(resume: Resume): React.ReactNode[] {
                     sectionId={section.id}
                     sectionTitle="Projects"
                 >
-                    <ModernSectionTitle label="Projects" accent={ACCENT} />
+                    <div className="mb-3">
+                        <ModernSectionTitle label="Projects" accent={ACCENT} />
+                    </div>
                 </EntryBlock>
             );
             (section as ProjectsSection).items.forEach((item) => {
@@ -238,7 +247,7 @@ export function renderBusinessModernBlocks(resume: Resume): React.ReactNode[] {
                         sectionId={section.id}
                         sectionTitle="Projects"
                     >
-                        <div className="mb-4 last:mb-7">
+                        <div className="mb-4 last:mb-6">
                             <div className="flex justify-between items-baseline mb-0.5">
                                 <h3 className="text-[12px] font-bold text-gray-900">{item.name}</h3>
                                 {item.link && (
@@ -248,7 +257,7 @@ export function renderBusinessModernBlocks(resume: Resume): React.ReactNode[] {
                                 )}
                             </div>
                             {item.techStack && item.techStack.length > 0 && (
-                                <p className="text-[10px] text-gray-400 uppercase tracking-tight mb-1">
+                                <p className="text-[10px] text-gray-500 uppercase tracking-tight mb-1">
                                     {item.techStack.join(" / ")}
                                 </p>
                             )}
@@ -273,15 +282,29 @@ export function renderBusinessModernBlocks(resume: Resume): React.ReactNode[] {
 
         // Custom
         if (section.type === "custom") {
+            const customSection = section as CustomSection;
+            const isListSection = ["languages", "hobbies", "interests", "awards", "certifications"].includes(customSection.title.toLowerCase());
+
             blocks.push(
                 <EntryBlock key={section.id} type="custom" id={section.id}>
-                    <section className="mb-7">
-                        <ModernSectionTitle label={(section as CustomSection).title} accent={ACCENT} />
-                        <div className="space-y-1 mt-2">
-                            {(section as CustomSection).content.map((c, i) => (
-                                <p key={i} className="text-[12px] text-gray-600">{c}</p>
-                            ))}
-                        </div>
+                    <section className="mt-8 mb-4 px-1">
+                        <ModernSectionTitle label={customSection.title} accent={ACCENT} />
+                        {isListSection ? (
+                            <div className="flex flex-wrap gap-x-8 gap-y-3 mt-4">
+                                {customSection.content.filter(Boolean).map((c, i) => (
+                                    <div key={i} className="text-[12px] text-gray-700 font-semibold flex items-center gap-2">
+                                        <span style={{ color: ACCENT }}>■</span>
+                                        {c}
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="space-y-2 mt-2">
+                                {customSection.content.map((c, i) => (
+                                    <p key={i} className="text-[12px] text-gray-700 leading-relaxed font-medium">{c}</p>
+                                ))}
+                            </div>
+                        )}
                     </section>
                 </EntryBlock>
             );

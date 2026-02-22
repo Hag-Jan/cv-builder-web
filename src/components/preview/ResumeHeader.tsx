@@ -29,10 +29,10 @@ export const ResumeHeader: React.FC<ResumeHeaderProps> = ({
     github,
     website,
     accentColor = '#000000',
-    titleColor = 'text-gray-600',
+    titleColor = 'text-gray-700',
     contactColor = 'text-gray-700',
-    separatorColor = 'text-gray-400',
-    borderColor = 'border-gray-400',
+    separatorColor = 'text-gray-500',
+    borderColor = 'border-gray-500',
     fontFamily,
     align = 'center'
 }) => {
@@ -47,27 +47,27 @@ export const ResumeHeader: React.FC<ResumeHeaderProps> = ({
 
     return (
         <div
-            className={`mb-6 pb-4 border-b-2 ${borderColor} ${align === 'center' ? 'text-center' : 'text-left'}`}
+            className={`mb-4 pb-4 border-b-2 ${borderColor} ${align === 'center' ? 'text-center' : 'text-left'}`}
             style={{ fontFamily }}
         >
             <h1
-                className="text-[24pt] font-bold leading-tight mb-1"
+                className="text-[32pt] font-extrabold leading-tight mb-2"
                 style={{ color: accentColor }}
             >
                 {name}
             </h1>
 
             {title && (
-                <p className={`text-[14pt] font-medium mb-3 uppercase tracking-wide ${titleColor}`}>
+                <p className={`text-[16pt] font-bold mb-4 uppercase tracking-widest ${titleColor}`}>
                     {title}
                 </p>
             )}
 
-            <div className={`flex flex-wrap ${align === 'center' ? 'justify-center' : 'justify-start'} gap-x-2 gap-y-1 text-[11pt] font-medium mt-2 ${contactColor}`}>
+            <div className={`flex flex-wrap ${align === 'center' ? 'justify-center' : 'justify-start'} gap-x-6 gap-y-2 text-[12pt] font-bold mt-4 ${contactColor} uppercase tracking-tight`}>
                 {contactItems.map((item, idx) => (
                     <React.Fragment key={idx}>
-                        <span>{item}</span>
-                        {idx < contactItems.length - 1 && <span className={`mx-0.5 ${separatorColor}`}>•</span>}
+                        <span className="whitespace-nowrap">{item}</span>
+                        {idx < contactItems.length - 1 && <span className={`mx-1 opacity-50 ${separatorColor}`}>|</span>}
                     </React.Fragment>
                 ))}
             </div>

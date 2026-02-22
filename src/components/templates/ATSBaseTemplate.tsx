@@ -78,12 +78,12 @@ export function renderATSBaseBlocks(resume: Resume): React.ReactNode[] {
                         sectionId={section.id}
                         sectionTitle="Professional Experience"
                     >
-                        <div className={idx === expSection.items.length - 1 ? "mb-7" : "mb-5"}>
+                        <div className="mb-4 last:mb-6">
                             <div className="flex justify-between items-baseline mb-0.5">
-                                <p className="font-bold text-sm text-gray-900 group-hover:text-blue-700 transition-colors uppercase tracking-tight">{item.role}</p>
-                                <p className="text-[11px] font-bold text-gray-600 min-w-fit">
+                                <h3 className="font-bold text-sm text-gray-900 group-hover:text-blue-700 transition-colors uppercase tracking-tight">{item.role}</h3>
+                                <time className="text-[11px] font-bold text-gray-500 min-w-fit">
                                     {formatDate(item.startDate)} – {formatDate(item.endDate || 'Present')}
-                                </p>
+                                </time>
                             </div>
                             <div className="flex justify-between items-baseline mb-2">
                                 <p className="text-sm font-semibold text-gray-700">{item.company}</p>
@@ -119,10 +119,10 @@ export function renderATSBaseBlocks(resume: Resume): React.ReactNode[] {
                         sectionId={section.id}
                         sectionTitle="Education"
                     >
-                        <div className={idx === eduSection.items.length - 1 ? "mb-7" : "mb-4"}>
+                        <div className="mb-4 last:mb-6">
                             <div className="flex justify-between items-baseline mb-0.5">
-                                <p className="font-bold text-[13px] text-gray-900 uppercase tracking-tight">{item.school}</p>
-                                <p className="text-[11px] font-bold text-gray-600 min-w-fit">{formatDate(item.date)}</p>
+                                <h3 className="font-bold text-[13px] text-gray-900 uppercase tracking-tight">{item.school}</h3>
+                                <time className="text-[11px] font-bold text-gray-500 min-w-fit">{formatDate(item.date)}</time>
                             </div>
                             <div className="flex justify-between items-baseline">
                                 <p className="text-sm font-medium text-gray-700 italic">{item.degree}</p>
@@ -142,27 +142,33 @@ export function renderATSBaseBlocks(resume: Resume): React.ReactNode[] {
         if (section.type === 'skills') {
             blocks.push(
                 <EntryBlock key={`${section.id}-header`} type="header" id={`${section.id}-header`}>
-                    <div className="mb-3">
-                        <h2 className="text-lg font-bold uppercase border-b border-black pb-1">Skills</h2>
+                    <div className="mt-6 mb-3">
+                        <h2 className="text-[15px] font-bold uppercase border-b border-gray-300 pb-0.5 tracking-wide">Skills & Expertise</h2>
                     </div>
                 </EntryBlock>
             );
 
-            const numCategories = (section as SkillsSection).categories.length;
-            (section as SkillsSection).categories.forEach((category, idx) => {
+            (section as SkillsSection).categories.forEach((category) => {
+                const cleanedSkills = category.skills
+                    .map(s => s.trim())
+                    .filter(Boolean);
+
+                if (cleanedSkills.length === 0) return;
+
                 blocks.push(
                     <EntryBlock key={category.id} type="skills" id={category.id} sectionId={section.id} sectionTitle="Skills">
-                        <div className={`text-sm ${idx === numCategories - 1 ? 'mb-7' : 'mb-2'}`}>
-                            <h3 className="text-[13px] font-bold text-gray-900 mb-0.5">{category.label}</h3>
-                            <div className="text-gray-800">
-                                {category.skills
-                                    .map(s => s.trim())
-                                    .filter(Boolean)
-                                    .map(s => {
-                                        const { name, level } = parseSkillLevel(s);
-                                        return level ? `${name} (${level})` : name;
-                                    })
-                                    .join(", ")}
+                        <div className="text-sm mb-3 last:mb-6">
+                            <h3 className="text-[13px] font-bold text-gray-900 mb-1">{category.label}</h3>
+                            <div className="text-gray-800 leading-relaxed">
+                                {cleanedSkills.map((s, sidx) => {
+                                    const { name, level } = parseSkillLevel(s);
+                                    return (
+                                        <span key={sidx}>
+                                            {name}{level && <span className="text-gray-500 font-medium ml-1">({level})</span>}
+                                            {sidx < cleanedSkills.length - 1 && <span className="mr-2">,</span>}
+                                        </span>
+                                    );
+                                })}
                             </div>
                         </div>
                     </EntryBlock>
@@ -187,10 +193,10 @@ export function renderATSBaseBlocks(resume: Resume): React.ReactNode[] {
                         sectionId={section.id}
                         sectionTitle="Projects"
                     >
-                        <div className={idx === projSection.items.length - 1 ? "mb-7" : "mb-4"}>
+                        <div className="mb-4 last:mb-6">
                             <div className="flex justify-between items-baseline mb-1">
-                                <p className="font-bold">{item.name}</p>
-                                {item.link && <p className="text-xs">{item.link.replace(/^https?:\/\/(www\.)?/, '')}</p>}
+                                <h3 className="font-bold text-sm text-gray-900">{item.name}</h3>
+                                {item.link && <p className="text-xs text-gray-500">{item.link.replace(/^https?:\/\/(www\.)?/, '')}</p>}
                             </div>
                             {item.techStack && item.techStack.length > 0 && (
                                 <p className="text-xs font-semibold text-gray-700 mb-1">
@@ -213,26 +219,43 @@ export function renderATSBaseBlocks(resume: Resume): React.ReactNode[] {
 
         // Custom
         if (section.type === 'custom') {
+            const customSection = section as CustomSection;
+            const isListSection = ["languages", "hobbies", "interests", "awards", "certifications"].includes(customSection.title.toLowerCase());
+
             blocks.push(
                 <EntryBlock key={`${section.id}-header`} type="header" id={`${section.id}-header`}>
-                    <div className="mb-3">
-                        <h2 className="text-lg font-bold uppercase border-b border-black pb-1">
-                            {(section as CustomSection).title}
+                    <div className="mt-6 mb-3">
+                        <h2 className="text-[15px] font-bold uppercase border-b border-gray-300 pb-0.5 tracking-wide">
+                            {customSection.title}
                         </h2>
                     </div>
                 </EntryBlock>
             );
 
-            const numContent = (section as CustomSection).content.length;
-            (section as CustomSection).content.forEach((item, idx) => {
+            if (isListSection) {
                 blocks.push(
-                    <EntryBlock key={`${section.id}-item-${idx}`} type="custom" id={`${section.id}-item-${idx}`} sectionId={section.id} sectionTitle={(section as CustomSection).title}>
-                        <div className={`space-y-2 ${idx === numContent - 1 ? 'mb-7' : 'mb-2'}`}>
-                            <p className="text-sm">{item}</p>
+                    <EntryBlock key={`${section.id}-content`} type="custom" id={`${section.id}-content`} sectionId={section.id} sectionTitle={customSection.title}>
+                        <div className="flex flex-wrap gap-x-6 gap-y-2 mb-6">
+                            {customSection.content.filter(Boolean).map((item, idx) => (
+                                <div key={idx} className="text-sm text-gray-800 font-medium flex items-center gap-2">
+                                    <span className="w-1 h-1 bg-gray-400 rounded-full" />
+                                    {item}
+                                </div>
+                            ))}
                         </div>
                     </EntryBlock>
                 );
-            });
+            } else {
+                customSection.content.forEach((item, idx) => {
+                    blocks.push(
+                        <EntryBlock key={`${section.id}-item-${idx}`} type="custom" id={`${section.id}-item-${idx}`} sectionId={section.id} sectionTitle={customSection.title}>
+                            <div className="space-y-2 mb-3 last:mb-6">
+                                <p className="text-sm text-gray-800 leading-relaxed">{item}</p>
+                            </div>
+                        </EntryBlock>
+                    );
+                });
+            }
         }
     });
 

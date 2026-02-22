@@ -80,9 +80,9 @@ export function renderBusinessClassicBlocks(resume: Resume): React.ReactNode[] {
                     sectionId={section.id}
                     sectionTitle="Professional Experience"
                 >
-                    <section className="mb-2">
+                    <div className="mb-3">
                         <ClassicSectionTitle label="Professional Experience" />
-                    </section>
+                    </div>
                 </EntryBlock>
             );
             (section as ExperienceSection).items.forEach((item) => {
@@ -94,7 +94,7 @@ export function renderBusinessClassicBlocks(resume: Resume): React.ReactNode[] {
                         sectionId={section.id}
                         sectionTitle="Professional Experience"
                     >
-                        <div className="mb-5 px-1">
+                        <div className="mb-4 last:mb-6 px-1">
                             <div className="flex justify-between items-baseline">
                                 <h3 className="text-[13px] font-bold uppercase tracking-tight text-black">
                                     {item.role}
@@ -136,9 +136,9 @@ export function renderBusinessClassicBlocks(resume: Resume): React.ReactNode[] {
                     sectionId={section.id}
                     sectionTitle="Education"
                 >
-                    <section className="mb-2">
+                    <div className="mb-3">
                         <ClassicSectionTitle label="Education" />
-                    </section>
+                    </div>
                 </EntryBlock>
             );
             (section as EducationSection).items.forEach((item) => {
@@ -150,7 +150,7 @@ export function renderBusinessClassicBlocks(resume: Resume): React.ReactNode[] {
                         sectionId={section.id}
                         sectionTitle="Education"
                     >
-                        <div className="mb-3 px-1">
+                        <div className="mb-4 last:mb-6 px-1">
                             <div className="flex justify-between items-baseline">
                                 <h3 className="text-[12px] font-bold uppercase tracking-tight text-black">
                                     {item.school}
@@ -185,14 +185,16 @@ export function renderBusinessClassicBlocks(resume: Resume): React.ReactNode[] {
                     sectionId={section.id}
                     sectionTitle="Skills"
                 >
-                    <section className="mb-2">
-                        <ClassicSectionTitle label="Skills" />
-                    </section>
+                    <div className="mt-8 mb-4">
+                        <ClassicSectionTitle label="Skills & Expertise" />
+                    </div>
                 </EntryBlock>
             );
 
-            const numCategories = (section as SkillsSection).categories.length;
-            (section as SkillsSection).categories.forEach((cat, idx) => {
+            (section as SkillsSection).categories.forEach((cat) => {
+                const cleanedSkills = cat.skills.map(s => s.trim()).filter(Boolean);
+                if (cleanedSkills.length === 0) return;
+
                 blocks.push(
                     <EntryBlock
                         key={cat.id}
@@ -201,18 +203,19 @@ export function renderBusinessClassicBlocks(resume: Resume): React.ReactNode[] {
                         sectionId={section.id}
                         sectionTitle="Skills"
                     >
-                        <div className={`text-[11px] ${idx === numCategories - 1 ? 'mb-6' : 'mb-1.5'}`}>
-                            <span className="font-bold text-black mr-2">{cat.label}:</span>
-                            <span className="text-gray-800">
-                                {cat.skills
-                                    .map(s => s.trim())
-                                    .filter(Boolean)
-                                    .map(s => {
-                                        const { name, level } = parseSkillLevel(s);
-                                        return level ? `${name} (${level})` : name;
-                                    })
-                                    .join(", ")}
-                            </span>
+                        <div className="text-[11px] mb-3 last:mb-8 px-1">
+                            <h3 className="font-bold text-black mb-1 uppercase tracking-tight">{cat.label}</h3>
+                            <div className="text-gray-800 leading-relaxed italic">
+                                {cleanedSkills.map((s, sidx) => {
+                                    const { name, level } = parseSkillLevel(s);
+                                    return (
+                                        <span key={sidx}>
+                                            {name}{level && <span className="text-gray-500 font-medium ml-1">({level})</span>}
+                                            {sidx < cleanedSkills.length - 1 && <span className="mr-2">,</span>}
+                                        </span>
+                                    );
+                                })}
+                            </div>
                         </div>
                     </EntryBlock>
                 );
@@ -229,9 +232,9 @@ export function renderBusinessClassicBlocks(resume: Resume): React.ReactNode[] {
                     sectionId={section.id}
                     sectionTitle="Projects"
                 >
-                    <section className="mb-2">
+                    <div className="mb-3">
                         <ClassicSectionTitle label="Projects" />
-                    </section>
+                    </div>
                 </EntryBlock>
             );
             (section as ProjectsSection).items.forEach((item) => {
@@ -243,7 +246,7 @@ export function renderBusinessClassicBlocks(resume: Resume): React.ReactNode[] {
                         sectionId={section.id}
                         sectionTitle="Projects"
                     >
-                        <div className="mb-4 px-1">
+                        <div className="mb-4 last:mb-6 px-1">
                             <div className="flex justify-between items-baseline mb-0.5">
                                 <h3 className="text-[12px] font-bold text-black">{item.name}</h3>
                                 {item.link && (
@@ -279,38 +282,61 @@ export function renderBusinessClassicBlocks(resume: Resume): React.ReactNode[] {
 
         // Custom
         if (section.type === "custom") {
+            const customSection = section as CustomSection;
+            const isListSection = ["languages", "hobbies", "interests", "awards", "certifications"].includes(customSection.title.toLowerCase());
+
             blocks.push(
                 <EntryBlock
                     key={`${section.id}-header`}
                     type="header"
                     id={`${section.id}-header`}
                     sectionId={section.id}
-                    sectionTitle={(section as CustomSection).title}
+                    sectionTitle={customSection.title}
                 >
-                    <section className="mb-2">
-                        <ClassicSectionTitle label={(section as CustomSection).title} />
-                    </section>
+                    <div className="mt-8 mb-4">
+                        <ClassicSectionTitle label={customSection.title} />
+                    </div>
                 </EntryBlock>
             );
 
-            const numContent = (section as CustomSection).content.length;
-            (section as CustomSection).content.forEach((c, i) => {
+            if (isListSection) {
                 blocks.push(
                     <EntryBlock
-                        key={`${section.id}-item-${i}`}
+                        key={`${section.id}-content`}
                         type="custom"
-                        id={`${section.id}-item-${i}`}
+                        id={`${section.id}-content`}
                         sectionId={section.id}
-                        sectionTitle={(section as CustomSection).title}
+                        sectionTitle={customSection.title}
                     >
-                        <div className={`space-y-1 mt-1 ${i === numContent - 1 ? 'mb-6' : 'mb-1'}`}>
-                            <p className="text-[11px] text-gray-800">
-                                {c}
-                            </p>
+                        <div className="flex flex-wrap gap-x-8 gap-y-2 mb-8 px-1">
+                            {customSection.content.filter(Boolean).map((c, i) => (
+                                <div key={i} className="text-[11px] text-gray-800 font-bold flex items-center gap-2">
+                                    <span className="w-1.5 h-1.5 bg-gray-300 rounded-sm italic" />
+                                    {c}
+                                </div>
+                            ))}
                         </div>
                     </EntryBlock>
                 );
-            });
+            } else {
+                customSection.content.forEach((c, i) => {
+                    blocks.push(
+                        <EntryBlock
+                            key={`${section.id}-item-${i}`}
+                            type="custom"
+                            id={`${section.id}-item-${i}`}
+                            sectionId={section.id}
+                            sectionTitle={customSection.title}
+                        >
+                            <div className="mb-3 last:mb-8 px-1">
+                                <p className="text-[11px] text-gray-800 leading-relaxed italic">
+                                    {c}
+                                </p>
+                            </div>
+                        </EntryBlock>
+                    );
+                });
+            }
         }
     });
 
