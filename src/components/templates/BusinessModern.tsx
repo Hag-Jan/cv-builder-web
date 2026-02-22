@@ -11,6 +11,7 @@ import type {
 } from "@/types/resume-schema-v2";
 import { formatDate } from "@/lib/utils/date-formatter";
 import { EntryBlock } from "../preview/EntryBlock";
+import { parseSkillLevel } from "@/lib/utils/skill-parser";
 import { ResumeHeader } from "../preview/ResumeHeader";
 import { ResumeSummary } from "../preview/ResumeSummary";
 
@@ -183,12 +184,30 @@ export function renderBusinessModernBlocks(resume: Resume): React.ReactNode[] {
                             {(section as SkillsSection).categories.map((cat) => (
                                 <div key={cat.id} className="text-[12px] text-gray-600">
                                     <h3
-                                        className="text-[11px] font-bold mb-0.5"
+                                        className="text-[11px] font-bold mb-1"
                                         style={{ color: ACCENT }}
                                     >
                                         {cat.label}
                                     </h3>
-                                    <span>{cat.skills.filter(Boolean).join(", ")}</span>
+                                    <div className="flex flex-wrap gap-x-3 gap-y-1">
+                                        {cat.skills
+                                            .map(s => s.trim())
+                                            .filter(Boolean)
+                                            .map((rawSkill, i) => {
+                                                const { name, level } = parseSkillLevel(rawSkill);
+                                                return (
+                                                    <div key={i} className="flex items-center gap-1.5">
+                                                        <span style={{ color: ACCENT }}>•</span>
+                                                        <span className="text-gray-700">{name}</span>
+                                                        {level && (
+                                                            <span className="text-[9px] uppercase tracking-wider bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-sm line-height-none border border-gray-200 font-bold mt-0.5">
+                                                                {level}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                    </div>
                                 </div>
                             ))}
                         </div>

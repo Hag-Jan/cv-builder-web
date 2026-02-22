@@ -11,14 +11,14 @@ export const ResumeSummary: React.FC<ResumeSummaryProps> = ({
     content,
     accentColor = '#000000',
     fontFamily,
-    headingLabel = 'PROFESSIONAL SUMMARY'
+    headingLabel = 'SUMMARY'
 }) => {
     if (!content) return null;
 
     return (
-        <div className="mb-7" style={{ fontFamily }}>
+        <div className="mb-6" style={{ fontFamily }}>
             <h2
-                className="text-[12pt] font-bold mb-3 uppercase tracking-wider border-b border-gray-200 pb-1"
+                className="text-[14pt] font-bold mb-6 uppercase tracking-wider border-b border-gray-300 pb-1"
                 style={{ color: accentColor }}
             >
                 {headingLabel}

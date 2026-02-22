@@ -102,7 +102,7 @@ export function SkillsEditor({ section }: { section: SkillsSectionV2 }) {
                                             .filter(Boolean),
                                     })
                                 }
-                                placeholder="Python&#10;JavaScript&#10;TypeScript"
+                                placeholder="React - Advanced&#10;Java - Intermediate&#10;System Design"
                             />
                         </div>
                     </div>

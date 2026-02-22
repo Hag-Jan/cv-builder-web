@@ -11,6 +11,7 @@ import type {
 } from "@/types/resume-schema-v2";
 import { formatDate } from "@/lib/utils/date-formatter";
 import { EntryBlock } from "../preview/EntryBlock";
+import { parseSkillLevel } from "@/lib/utils/skill-parser";
 import { ResumeHeader } from "../preview/ResumeHeader";
 import { ResumeSummary } from "../preview/ResumeSummary";
 
@@ -50,6 +51,10 @@ export function renderBusinessTwoColumnBlocks(resume: Resume): React.ReactNode[]
                         github={contact.github}
                         website={contact.website}
                         accentColor="#FFFFFF"
+                        titleColor="text-white/90"
+                        contactColor="text-white/80"
+                        separatorColor="text-white/40"
+                        borderColor="border-white/20"
                         align="left"
                         fontFamily="Inter, Arial, sans-serif"
                     />
@@ -248,7 +253,7 @@ export function renderBusinessTwoColumnBlocks(resume: Resume): React.ReactNode[]
                     sectionId={section.id}
                     sectionTitle="Skills"
                 >
-                    <section className="px-8 py-4 bg-gray-50 border-l-4 border-gray-200">
+                    <section className="px-8 pt-4 pb-2 mb-2 last:mb-0 bg-white">
                         <TwoColSectionTitle label="Skills" accent={ACCENT} />
                         <div className="space-y-2 mt-2">
                             {(section as SkillsSection).categories.map((cat) => (
@@ -256,7 +261,16 @@ export function renderBusinessTwoColumnBlocks(resume: Resume): React.ReactNode[]
                                     <h3 className="text-[10px] font-bold uppercase tracking-wide text-gray-700">
                                         {cat.label}
                                     </h3>
-                                    <p className="text-[11px] text-gray-600">{cat.skills.filter(Boolean).join(", ")}</p>
+                                    <p className="text-[11px] text-gray-600">
+                                        {cat.skills
+                                            .map(s => s.trim())
+                                            .filter(Boolean)
+                                            .map(s => {
+                                                const { name, level } = parseSkillLevel(s);
+                                                return level ? `${name} (${level})` : name;
+                                            })
+                                            .join(", ")}
+                                    </p>
                                 </div>
                             ))}
                         </div>
@@ -275,7 +289,7 @@ export function renderBusinessTwoColumnBlocks(resume: Resume): React.ReactNode[]
                     sectionId={section.id}
                     sectionTitle={(section as CustomSection).title}
                 >
-                    <section className="px-8 py-4 bg-gray-50 border-l-4 border-gray-200">
+                    <section className="px-8 pt-4 pb-2 mb-2 last:mb-0 bg-white">
                         <TwoColSectionTitle label={(section as CustomSection).title} accent={ACCENT} />
                         <div className="space-y-1 mt-2">
                             {(section as CustomSection).content.map((c, i) => (

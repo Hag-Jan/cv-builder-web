@@ -10,8 +10,9 @@ import type {
     SummarySection
 } from '@/types/resume-schema-v2';
 import { formatDate, ensureUrlScheme } from '@/lib/utils/date-formatter';
-import { EntryBlock } from '../preview/EntryBlock';
-import { ResumeHeader } from '../preview/ResumeHeader';
+import { EntryBlock } from "../preview/EntryBlock";
+import { parseSkillLevel } from "@/lib/utils/skill-parser";
+import { ResumeHeader } from "../preview/ResumeHeader";
 import { ResumeSummary } from '../preview/ResumeSummary';
 
 interface ATSBaseTemplateProps {
@@ -153,7 +154,16 @@ export function renderATSBaseBlocks(resume: Resume): React.ReactNode[] {
                     <EntryBlock key={category.id} type="skills" id={category.id} sectionId={section.id} sectionTitle="Skills">
                         <div className={`text-sm ${idx === numCategories - 1 ? 'mb-7' : 'mb-2'}`}>
                             <h3 className="text-[13px] font-bold text-gray-900 mb-0.5">{category.label}</h3>
-                            <span>{category.skills.filter(Boolean).join(', ')}</span>
+                            <div className="text-gray-800">
+                                {category.skills
+                                    .map(s => s.trim())
+                                    .filter(Boolean)
+                                    .map(s => {
+                                        const { name, level } = parseSkillLevel(s);
+                                        return level ? `${name} (${level})` : name;
+                                    })
+                                    .join(", ")}
+                            </div>
                         </div>
                     </EntryBlock>
                 );

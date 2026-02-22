@@ -10,6 +10,7 @@ import type {
     SummarySection
 } from "@/types/resume-schema-v2";
 import { EntryBlock } from "../preview/EntryBlock";
+import { parseSkillLevel } from "@/lib/utils/skill-parser";
 import { ResumeHeader } from "../preview/ResumeHeader";
 import { ResumeSummary } from "../preview/ResumeSummary";
 

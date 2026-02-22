@@ -11,6 +11,7 @@ import type {
 } from "@/types/resume-schema-v2";
 import { formatDate } from "@/lib/utils/date-formatter";
 import { EntryBlock } from "../preview/EntryBlock";
+import { parseSkillLevel } from "@/lib/utils/skill-parser";
 import { ResumeHeader } from "../preview/ResumeHeader";
 import { ResumeSummary } from "../preview/ResumeSummary";
 
@@ -201,8 +202,17 @@ export function renderBusinessClassicBlocks(resume: Resume): React.ReactNode[] {
                         sectionTitle="Skills"
                     >
                         <div className={`text-[11px] ${idx === numCategories - 1 ? 'mb-6' : 'mb-1.5'}`}>
-                            <h3 className="font-bold text-black inline mr-2">{cat.label}:</h3>
-                            <span className="text-gray-800">{cat.skills.filter(Boolean).join(", ")}</span>
+                            <span className="font-bold text-black mr-2">{cat.label}:</span>
+                            <span className="text-gray-800">
+                                {cat.skills
+                                    .map(s => s.trim())
+                                    .filter(Boolean)
+                                    .map(s => {
+                                        const { name, level } = parseSkillLevel(s);
+                                        return level ? `${name} (${level})` : name;
+                                    })
+                                    .join(", ")}
+                            </span>
                         </div>
                     </EntryBlock>
                 );

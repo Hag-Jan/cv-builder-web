@@ -11,6 +11,7 @@ import type {
 } from "@/types/resume-schema-v2";
 import { formatDate } from "@/lib/utils/date-formatter";
 import { EntryBlock } from "../preview/EntryBlock";
+import { parseSkillLevel } from "@/lib/utils/skill-parser";
 import { ResumeHeader } from "../preview/ResumeHeader";
 import { ResumeSummary } from "../preview/ResumeSummary";
 
@@ -176,7 +177,16 @@ export function renderBusinessMinimalBlocks(resume: Resume): React.ReactNode[] {
                             {(section as SkillsSection).categories.map((cat) => (
                                 <div key={cat.id} className="text-[12px] text-gray-600">
                                     <span className="font-bold text-gray-800 mr-2">{cat.label}:</span>
-                                    <span>{cat.skills.filter(Boolean).join(", ")}</span>
+                                    <span>
+                                        {cat.skills
+                                            .map(s => s.trim())
+                                            .filter(Boolean)
+                                            .map(s => {
+                                                const { name, level } = parseSkillLevel(s);
+                                                return level ? `${name} (${level})` : name;
+                                            })
+                                            .join(", ")}
+                                    </span>
                                 </div>
                             ))}
                         </div>

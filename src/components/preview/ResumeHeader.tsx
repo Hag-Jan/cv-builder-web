@@ -11,6 +11,10 @@ interface ResumeHeaderProps {
     github?: string;
     website?: string;
     accentColor?: string;
+    titleColor?: string;
+    contactColor?: string;
+    separatorColor?: string;
+    borderColor?: string;
     fontFamily?: string;
     align?: 'left' | 'center';
 }
@@ -25,6 +29,10 @@ export const ResumeHeader: React.FC<ResumeHeaderProps> = ({
     github,
     website,
     accentColor = '#000000',
+    titleColor = 'text-gray-600',
+    contactColor = 'text-gray-700',
+    separatorColor = 'text-gray-400',
+    borderColor = 'border-gray-400',
     fontFamily,
     align = 'center'
 }) => {
@@ -39,7 +47,7 @@ export const ResumeHeader: React.FC<ResumeHeaderProps> = ({
 
     return (
         <div
-            className={`mb-8 pb-6 border-b-2 border-gray-100 ${align === 'center' ? 'text-center' : 'text-left'}`}
+            className={`mb-6 pb-4 border-b-2 ${borderColor} ${align === 'center' ? 'text-center' : 'text-left'}`}
             style={{ fontFamily }}
         >
             <h1
@@ -50,16 +58,16 @@ export const ResumeHeader: React.FC<ResumeHeaderProps> = ({
             </h1>
 
             {title && (
-                <p className="text-[14pt] font-medium text-gray-600 mb-3 uppercase tracking-wide">
+                <p className={`text-[14pt] font-medium mb-3 uppercase tracking-wide ${titleColor}`}>
                     {title}
                 </p>
             )}
 
-            <div className={`flex flex-wrap ${align === 'center' ? 'justify-center' : 'justify-start'} gap-x-3 gap-y-1 text-[11pt] text-gray-700 font-medium mt-2`}>
+            <div className={`flex flex-wrap ${align === 'center' ? 'justify-center' : 'justify-start'} gap-x-2 gap-y-1 text-[11pt] font-medium mt-2 ${contactColor}`}>
                 {contactItems.map((item, idx) => (
                     <React.Fragment key={idx}>
                         <span>{item}</span>
-                        {idx < contactItems.length - 1 && <span className="text-gray-300 mx-1">•</span>}
+                        {idx < contactItems.length - 1 && <span className={`mx-0.5 ${separatorColor}`}>•</span>}
                     </React.Fragment>
                 ))}
             </div>
