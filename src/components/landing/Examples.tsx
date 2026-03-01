@@ -25,21 +25,24 @@ const roles = [
 
 export const Examples = () => {
     return (
-        <section className="py-24 bg-white dark:bg-background-dark">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="py-24 bg-background">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center max-w-2xl mx-auto mb-16">
-                    <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">Resume Examples by Role</h2>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm">Professional samples designed to pass top company ATS filters.</p>
+                    <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Resume Examples by Role</h2>
+                    <p className="text-lg text-muted-foreground leading-relaxed">Professional samples designed to pass top company ATS filters.</p>
                 </div>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {roles.map((role) => (
-                        <div key={role.title} className="group p-6 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-primary transition-all relative overflow-hidden">
-                            <div className="inline-block bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border border-emerald-200 dark:border-emerald-800 mb-4">
+                        <div key={role.title} className="group p-8 bg-white rounded-3xl border border-border/60 hover:border-emerald-500/30 shadow-sm hover:shadow-xl transition-all duration-300 relative overflow-hidden">
+                            <div className="inline-block bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider mb-6 border border-emerald-100">
                                 ATS Score: {role.score}
                             </div>
-                            <h3 className="font-bold text-slate-900 dark:text-white mb-2">{role.title}</h3>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 line-clamp-1">{role.description}</p>
-                            <Link className="text-primary text-xs font-bold group-hover:underline inline-flex items-center gap-1" href="/examples">View example →</Link>
+                            <h3 className="text-xl font-bold text-foreground mb-3">{role.title}</h3>
+                            <p className="text-sm text-muted-foreground mb-8 leading-relaxed line-clamp-2">{role.description}</p>
+                            <Link className="text-emerald-600 text-sm font-bold group-hover:text-emerald-700 inline-flex items-center gap-2" href="/editor">
+                                Try this structure
+                                <span className="material-symbols-outlined text-sm font-bold group-hover:translate-x-1 transition-transform">trending_flat</span>
+                            </Link>
                         </div>
                     ))}
                 </div>

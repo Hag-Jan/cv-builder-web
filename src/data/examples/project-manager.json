@@ -1,0 +1,123 @@
+{
+    "id": "project-manager-example",
+    "title": "Project Manager",
+    "schemaVersion": "2.0",
+    "templateId": "resumave-clean",
+    "design": {
+        "fontFamily": "var(--font-inter)",
+        "headingSize": 18,
+        "bodySize": 10,
+        "primaryColor": "#0F172A",
+        "layout": "single-column",
+        "spacing": 16
+    },
+    "sections": [
+        {
+            "id": "contact",
+            "type": "contact",
+            "name": "Thomas Wright, PMP",
+            "email": "t.wright.pmp@email.com",
+            "phone": "(720) 555-0912",
+            "location": "Denver, CO",
+            "linkedin": "linkedin.com/in/thomaswright-pmp"
+        },
+        {
+            "id": "summary",
+            "type": "summary",
+            "content": "Certified Project Management Professional (PMP) with 9+ years of experience directing complex IT infrastructure and software delivery projects. Adept at managing budgets up to $5M, mitigating risks, and aligning globally distributed teams. Track record of delivering 95% of projects on time and under budget while maintaining high stakeholder satisfaction."
+        },
+        {
+            "id": "experience",
+            "type": "experience",
+            "title": "Professional Experience",
+            "items": [
+                {
+                    "id": "exp-1",
+                    "role": "Senior IT Project Manager",
+                    "company": "Global Systems Integrators",
+                    "location": "Denver, CO",
+                    "startDate": "May 2019",
+                    "endDate": "Present",
+                    "bullets": [
+                        "Directed a $4.2M enterprise cloud migration project (on-prem to AWS), successfully completing the transition 2 weeks ahead of schedule.",
+                        "Led a matrixed team of 25+ developers, QA testers, and cloud architects across 3 different time zones.",
+                        "Implemented strict risk management and change control processes, reducing project variance by 15% year-over-year.",
+                        "Facilitated daily stand-ups, sprint planning, and retrospective ceremonies as acting Scrum Master."
+                    ]
+                },
+                {
+                    "id": "exp-2",
+                    "role": "Project Manager",
+                    "company": "BuildTech Solutions",
+                    "location": "Chicago, IL",
+                    "startDate": "Jan 2015",
+                    "endDate": "Apr 2019",
+                    "bullets": [
+                        "Managed the full SDLC for 12+ custom software development projects concurrently, averaging $500K in budget per project.",
+                        "Negotiated vendor contracts and SOWs, achieving a 10% reduction in external consulting costs.",
+                        "Maintained comprehensive project documentation and delivered weekly executive status reports to C-suite stakeholders."
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "skills",
+            "type": "skills",
+            "title": "Core Competencies",
+            "categories": [
+                {
+                    "id": "cat-1",
+                    "label": "Project Management",
+                    "skills": [
+                        "Agile/Scrum methodologies",
+                        "Waterfall",
+                        "Risk Management",
+                        "Budgeting ($5M+)",
+                        "Stakeholder Communication"
+                    ]
+                },
+                {
+                    "id": "cat-2",
+                    "label": "Software & Tools",
+                    "skills": [
+                        "Jira",
+                        "Asana",
+                        "MS Project",
+                        "Smartsheet",
+                        "Confluence",
+                        "Salesforce"
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "education",
+            "type": "education",
+            "title": "Education & Certifications",
+            "items": [
+                {
+                    "id": "edu-1",
+                    "degree": "Project Management Professional (PMP)",
+                    "school": "Project Management Institute",
+                    "date": "2018"
+                },
+                {
+                    "id": "edu-2",
+                    "degree": "Certified ScrumMaster (CSM)",
+                    "school": "Scrum Alliance",
+                    "date": "2017"
+                },
+                {
+                    "id": "edu-3",
+                    "degree": "B.S. in Business Administration",
+                    "school": "University of Colorado Boulder",
+                    "date": "2014"
+                }
+            ]
+        }
+    ],
+    "metadata": {
+        "createdAt": 1708801234571,
+        "updatedAt": 1708801234571
+    }
+}

@@ -1,0 +1,130 @@
+{
+    "id": "data-scientist-example",
+    "title": "Data Scientist",
+    "schemaVersion": "2.0",
+    "templateId": "modern",
+    "design": {
+        "fontFamily": "var(--font-inter)",
+        "headingSize": 18,
+        "bodySize": 10,
+        "primaryColor": "#6366F1",
+        "layout": "single-column",
+        "spacing": 16
+    },
+    "sections": [
+        {
+            "id": "contact",
+            "type": "contact",
+            "name": "Dr. David Kim",
+            "email": "david.kim.data@email.com",
+            "phone": "(206) 555-0348",
+            "location": "Seattle, WA",
+            "linkedin": "linkedin.com/in/davidkim-ds",
+            "github": "github.com/dkim-ml"
+        },
+        {
+            "id": "summary",
+            "type": "summary",
+            "content": "Results-oriented Data Scientist with a PhD in Statistics and 4+ years of industry experience deploying machine learning models to production. Specialized in Natural Language Processing (NLP) and predictive analytics. Proven ability to translate complex datasets into strategic business insights, driving a 15% increase in cross-sell revenue."
+        },
+        {
+            "id": "experience",
+            "type": "experience",
+            "title": "Experience",
+            "items": [
+                {
+                    "id": "exp-1",
+                    "role": "Senior Data Scientist",
+                    "company": "RetailMax Solutions",
+                    "location": "Seattle, WA",
+                    "startDate": "Oct 2021",
+                    "endDate": "Present",
+                    "bullets": [
+                        "Developed and deployed a personalized recommendation engine using PyTorch, increasing average order value by 12% across 5M+ active users.",
+                        "Built an automated churn prediction model utilizing XGBoost, allowing the retention team to proactively save $1.2M in annual revenue.",
+                        "Collaborated with data engineering to optimize SQL query performance on Snowflake, reducing dashboard load times by 60%."
+                    ]
+                },
+                {
+                    "id": "exp-2",
+                    "role": "Data Scientist",
+                    "company": "HealthAnalytics",
+                    "location": "San Diego, CA",
+                    "startDate": "Jul 2019",
+                    "endDate": "Sep 2021",
+                    "bullets": [
+                        "Implemented an NLP pipeline using BERT to analyze unstructured clinical notes, improving diagnostic code accuracy by 18%.",
+                        "Designed and executed 20+ A/B tests to optimize patient portal engagement, establishing statistically significant results presented to the executive board.",
+                        "Created automated weekly KPI reports using Python and Tableau."
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "skills",
+            "type": "skills",
+            "title": "Technical Skills",
+            "categories": [
+                {
+                    "id": "cat-1",
+                    "label": "Machine Learning",
+                    "skills": [
+                        "NLP",
+                        "Deep Learning",
+                        "Predictive Modeling",
+                        "XGBoost",
+                        "PyTorch",
+                        "Scikit-Learn"
+                    ]
+                },
+                {
+                    "id": "cat-2",
+                    "label": "Programming & Data",
+                    "skills": [
+                        "Python",
+                        "SQL",
+                        "R",
+                        "Snowflake",
+                        "Pandas",
+                        "Spark"
+                    ]
+                },
+                {
+                    "id": "cat-3",
+                    "label": "Tools & Deployment",
+                    "skills": [
+                        "Docker",
+                        "AWS SageMaker",
+                        "Git",
+                        "Tableau",
+                        "Airflow"
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "education",
+            "type": "education",
+            "title": "Education",
+            "items": [
+                {
+                    "id": "edu-1",
+                    "degree": "Ph.D. in Statistics",
+                    "school": "Stanford University",
+                    "date": "2019",
+                    "honors": "Thesis: 'Advanced Applications of Deep Learning in Time Series Analysis'"
+                },
+                {
+                    "id": "edu-2",
+                    "degree": "B.S. in Applied Mathematics",
+                    "school": "UC Berkeley",
+                    "date": "2014"
+                }
+            ]
+        }
+    ],
+    "metadata": {
+        "createdAt": 1708801234570,
+        "updatedAt": 1708801234570
+    }
+}

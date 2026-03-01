@@ -2,40 +2,76 @@ import Link from "next/link";
 
 export const Comparison = () => {
     return (
-        <section className="pb-12 pt-12">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                <div className="flex flex-col items-center">
-                    <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] items-center gap-6 md:gap-12 w-full max-w-4xl">
-                        <div className="bg-white dark:bg-slate-900 border-2 border-red-100 dark:border-red-900/30 rounded-2xl p-8 shadow-xl shadow-red-500/5 text-center transition-transform hover:-translate-y-1">
-                            <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4 block">Typical Failure</span>
-                            <div className="text-7xl md:text-8xl font-black text-red-500 mb-2 leading-none">47</div>
-                            <div className="flex items-center justify-center gap-1 text-red-600 dark:text-red-400 font-bold text-sm uppercase">
-                                <span className="material-symbols-outlined text-lg">error</span>
-                                Critical Fail
-                            </div>
-                        </div>
-                        <div className="flex items-center justify-center">
-                            <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm">
-                                <span className="material-symbols-outlined text-4xl text-primary font-bold">trending_flat</span>
-                            </div>
-                        </div>
-                        <div className="bg-white dark:bg-slate-900 border-2 border-primary/20 dark:border-primary/30 rounded-2xl p-8 shadow-2xl shadow-emerald-500/10 text-center transition-transform hover:-translate-y-1">
-                            <span className="text-xs font-bold text-[#10B981] uppercase tracking-widest mb-4 block">Interview Ready</span>
-                            <div className="text-7xl md:text-8xl font-black text-[#10B981] mb-2 leading-none">92</div>
-                            <div className="flex items-center justify-center gap-1 text-[#10B981] font-bold text-sm uppercase">
-                                <span className="material-symbols-outlined text-lg text-[#10B981]">check_circle</span>
-                                ATS Approved
-                            </div>
+        <section className="py-24 bg-[#0f172a] overflow-hidden relative">
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                @keyframes float-y {
+                    0%, 100% { transform: translateY(0); }
+                    50% { transform: translateY(-15px); }
+                }
+                @keyframes slide-in-right {
+                    from { opacity: 0; transform: translateX(50px); }
+                    to { opacity: 1; transform: translateX(0); }
+                }
+                @keyframes pulse-slow {
+                    0%, 100% { opacity: 0.3; }
+                    50% { opacity: 0.6; }
+                }
+                `
+            }} />
+
+            {/* Background Decorative Elements */}
+            <div className="absolute inset-0 bg-gradient-to-br from-[#1e1b4b] via-[#312e81] to-[#0f172a] opacity-90"></div>
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-1/4 -right-20 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl animate-[pulse-slow_8s_infinite]"></div>
+                <div className="absolute bottom-1/4 -left-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-[pulse-slow_10s_infinite]"></div>
+            </div>
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div className="grid lg:grid-cols-2 gap-16 items-center">
+                    {/* Left: Content */}
+                    <div className="text-white space-y-8">
+                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight">
+                            Resumes optimized for Applicant Tracking Systems (ATS)
+                        </h2>
+                        <p className="text-lg md:text-xl text-blue-100/80 leading-relaxed max-w-xl">
+                            All ResumeATS templates are tested with top Applicant Tracking Systems (ATS) to guarantee full compatibility. With clean layouts, readable fonts, and standard section titles, nothing gets lost by the software.
+                        </p>
+                        <div className="pt-4">
+                            <Link href="/editor" className="inline-flex items-center bg-emerald-500 text-white px-10 py-5 rounded-xl font-bold text-xl transition-all hover:bg-emerald-400 hover:shadow-[0_0_30px_rgba(16,185,129,0.3)] hover:-translate-y-1 active:translate-y-0">
+                                Build an ATS-Friendly Resume
+                            </Link>
                         </div>
                     </div>
-                    <div className="mt-10 mb-8">
-                        <p className="text-slate-500 dark:text-slate-400 font-semibold text-lg italic">
-                            Same resume. 60-second transformation.
-                        </p>
-                        <div className="mt-6">
-                            <Link className="inline-flex items-center text-slate-950 dark:text-white font-extrabold hover:text-primary transition-colors border-2 border-slate-400 dark:border-slate-600 px-6 py-2.5 rounded hover:bg-slate-50 dark:hover:bg-slate-800" href="/editor">
-                                See your ATS score free →
-                            </Link>
+
+                    {/* Right: Visual Demo */}
+                    <div className="relative flex justify-center lg:justify-end pr-4 md:pr-12">
+                        <div className="relative flex flex-col gap-6 w-full max-w-md animate-[float-y_6s_infinite_ease-in-out]">
+
+                            {/* Card 1 */}
+                            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 flex items-center gap-6 shadow-2xl translate-x-12 animate-[slide-in-right_1s_ease-out_forwards]">
+                                <div className="bg-white rounded-xl p-3 flex-shrink-0 shadow-lg">
+                                    <span className="material-symbols-outlined text-indigo-900 font-bold scale-125">contact_mail</span>
+                                </div>
+                                <span className="text-white text-lg font-bold">Readable contact information</span>
+                            </div>
+
+                            {/* Card 2 */}
+                            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 flex items-center gap-6 shadow-2xl -translate-x-4 animate-[slide-in-right_1s_ease-out_0.3s_forwards] opacity-0">
+                                <div className="bg-white rounded-xl p-3 flex-shrink-0 shadow-lg">
+                                    <span className="material-symbols-outlined text-indigo-900 font-bold scale-125">account_tree</span>
+                                </div>
+                                <span className="text-white text-lg font-bold">Full experience section parsing</span>
+                            </div>
+
+                            {/* Card 3 */}
+                            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 flex items-center gap-6 shadow-2xl translate-x-8 animate-[slide-in-right_1s_ease-out_0.6s_forwards] opacity-0">
+                                <div className="bg-white rounded-xl p-3 flex-shrink-0 shadow-lg">
+                                    <span className="material-symbols-outlined text-indigo-900 font-bold scale-125">rocket_launch</span>
+                                </div>
+                                <span className="text-white text-lg font-bold">Optimized skills section</span>
+                            </div>
+
                         </div>
                     </div>
                 </div>

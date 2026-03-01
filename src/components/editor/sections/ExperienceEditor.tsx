@@ -100,16 +100,7 @@ export function ExperienceEditor({ section }: { section: ExperienceSectionV2 }) 
                     <p>{aiInfo}</p>
                 </div>
             )}
-            <div className="flex justify-between items-center border-b dark:border-gray-800 pb-2">
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Experience</h3>
-                <button
-                    onClick={handleAddItem}
-                    className="flex items-center gap-1.5 text-sm bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors shadow-sm"
-                >
-                    <Plus size={16} />
-                    Add Position
-                </button>
-            </div>
+
 
             {section.items.length === 0 && (
                 <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-lg">
@@ -223,6 +214,16 @@ export function ExperienceEditor({ section }: { section: ExperienceSectionV2 }) 
                     </div>
                 ))}
             </div>
+
+            {section.items.length > 0 && (
+                <button
+                    onClick={handleAddItem}
+                    className="w-full flex items-center justify-center gap-1.5 py-3 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-lg text-gray-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-all font-semibold"
+                >
+                    <Plus size={18} />
+                    Add Position
+                </button>
+            )}
 
             {/* AI Suggestions Popover */}
             {showAIPopover && user && hasATSResults && (

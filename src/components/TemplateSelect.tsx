@@ -20,7 +20,9 @@ export default function TemplateSelect() {
             {templates.map((config) => (
                 <TemplatePreviewCard
                     key={config.id}
-                    config={config}
+                    templateId={config.id}
+                    name={config.label}
+                    description={config.description || "A resume template."}
                     isSelected={resume.templateId === config.id}
                     onSelect={() => updateTemplate(config.id as any)}
                 />

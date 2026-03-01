@@ -23,7 +23,13 @@ interface MinimalHtmlTemplateProps {
     resume: Resume;
 }
 
+const DEFAULT_ACCENT = "#000000"; // minimal uses mostly grays/blacks
+const DEFAULT_FONT = "Inter, Arial, sans-serif";
+
 export function renderMinimalHtmlBlocks(resume: Resume): React.ReactNode[] {
+    const ACCENT = resume.design?.accentColor || DEFAULT_ACCENT;
+    const FONT = resume.design?.fontFamily || DEFAULT_FONT;
+
     const contact = resume.sections.find((s) => s.type === "contact") as ContactSection | undefined;
     const sorted = [...resume.sections].sort((a, b) => a.order - b.order);
     const blocks: React.ReactNode[] = [];
@@ -40,8 +46,9 @@ export function renderMinimalHtmlBlocks(resume: Resume): React.ReactNode[] {
                     linkedin={contact.linkedin}
                     github={contact.github}
                     website={contact.website}
+                    accentColor={ACCENT}
                     align="left"
-                    fontFamily="Inter, Arial, sans-serif"
+                    fontFamily={FONT}
                 />
             </EntryBlock>
         );
@@ -56,7 +63,8 @@ export function renderMinimalHtmlBlocks(resume: Resume): React.ReactNode[] {
                 <EntryBlock key={section.id} type="summary" id={section.id}>
                     <ResumeSummary
                         content={(section as SummarySection).content}
-                        fontFamily="Inter, Arial, sans-serif"
+                        accentColor={ACCENT}
+                        fontFamily={FONT}
                     />
                 </EntryBlock>
             );
@@ -279,9 +287,10 @@ export function renderMinimalHtmlBlocks(resume: Resume): React.ReactNode[] {
 
 export default function MinimalHtmlTemplate({ resume }: MinimalHtmlTemplateProps) {
     const blocks = renderMinimalHtmlBlocks(resume);
+    const FONT = resume.design?.fontFamily || "Inter, Arial, sans-serif";
 
     return (
-        <div className="max-w-3xl mx-auto bg-white px-12 py-10 text-gray-700" style={{ fontFamily: "Inter, Arial, sans-serif" }}>
+        <div className="max-w-3xl mx-auto bg-white px-12 py-10 text-gray-700" style={{ fontFamily: FONT }}>
             {blocks}
         </div>
     );

@@ -4,6 +4,8 @@ interface A4PageProps {
     children: React.ReactNode;
     /** true = Continuous scroll mode (no fixed height, no page clipping) */
     isContinuous?: boolean;
+    /** CSS value for padding around the page (e.g. "20mm") */
+    pageMargins?: string;
 }
 
 /**
@@ -23,7 +25,7 @@ interface A4PageProps {
  * which means the entire stack — pages + mb-8 gaps — scales together.
  * No transform:scale is used here, avoiding the classic "gap collapses" bug.
  */
-export const A4Page: React.FC<A4PageProps> = ({ children, isContinuous = false }) => {
+export const A4Page: React.FC<A4PageProps> = ({ children, isContinuous = false, pageMargins = "20mm" }) => {
     return (
         <div
             style={{
@@ -51,7 +53,7 @@ export const A4Page: React.FC<A4PageProps> = ({ children, isContinuous = false }
                     }),
 
                 /* ── Printable-area padding (mirrors PDF margins) ─────── */
-                padding: "20mm",
+                padding: pageMargins,
             } as React.CSSProperties}
         >
             {children}

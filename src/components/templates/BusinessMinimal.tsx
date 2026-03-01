@@ -91,14 +91,14 @@ export function renderBusinessMinimalBlocks(resume: Resume): React.ReactNode[] {
                         <div className="mb-4 last:mb-6 px-1">
                             <div className="flex justify-between items-baseline">
                                 <h3 className="text-[14px] font-bold text-gray-900">{item.role}</h3>
-                                <time className="text-[10px] font-semibold text-gray-500 uppercase tracking-tighter min-w-fit">
+                                <time className="text-[10px] font-semibold text-gray-500 uppercase tracking-tighter min-w-fit shrink-0 whitespace-nowrap text-right">
                                     {formatDate(item.startDate)} – {formatDate(item.endDate || "Present")}
                                 </time>
                             </div>
                             <div className="flex justify-between items-baseline mb-2">
                                 <p className="text-[12px] text-gray-500 font-medium">{item.company}</p>
                                 {item.location && (
-                                    <p className="text-[10px] text-gray-500">{item.location}</p>
+                                    <p className="text-[10px] text-gray-500 shrink-0 text-right whitespace-nowrap">{item.location}</p>
                                 )}
                             </div>
                             {item.bullets && item.bullets.length > 0 && (
@@ -144,7 +144,7 @@ export function renderBusinessMinimalBlocks(resume: Resume): React.ReactNode[] {
                         <div className="mb-4 last:mb-6 px-1">
                             <div className="flex justify-between items-baseline">
                                 <h3 className="text-[13px] font-bold text-gray-900">{item.school}</h3>
-                                <time className="text-[10px] font-semibold text-gray-500 min-w-fit">
+                                <time className="text-[10px] font-semibold text-gray-500 min-w-fit shrink-0 whitespace-nowrap text-right">
                                     {formatDate(item.date)}
                                 </time>
                             </div>

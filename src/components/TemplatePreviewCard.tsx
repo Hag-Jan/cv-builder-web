@@ -1,56 +1,50 @@
 "use client";
 
 import React from "react";
-import type { TemplateConfig } from "@/types/template-types";
+import clsx from "clsx";
 import { Check } from "lucide-react";
 
 interface TemplatePreviewCardProps {
-    config: TemplateConfig;
+    templateId: string;
+    name: string;
+    description: string;
     isSelected: boolean;
-    onSelect: () => void;
+    onSelect: (id: string) => void;
 }
 
-/**
- * Visual template picker card.
- * Shows a colored placeholder (until real thumbnails are added),
- * template name, description, and a selected state indicator.
- */
-export default function TemplatePreviewCard({
-    config,
+const TemplatePreviewCard: React.FC<TemplatePreviewCardProps> = ({
+    templateId,
+    name,
+    description,
     isSelected,
     onSelect,
-}: TemplatePreviewCardProps) {
+}) => {
     return (
-        <button
-            onClick={onSelect}
-            className={`
-        relative flex flex-col rounded-lg border-2 overflow-hidden
-        transition-all duration-200 text-left
-        ${isSelected
-                    ? "border-blue-500 shadow-md ring-2 ring-blue-200"
-                    : "border-gray-200 hover:border-gray-400 hover:shadow-sm"
-                }
-      `}
+        <div
+            onClick={() => onSelect(templateId)}
+            className={clsx(
+                "relative cursor-pointer transition-all duration-200 rounded-2xl border p-6 bg-background shadow-sm hover:shadow-md",
+                isSelected
+                    ? "border-primary ring-2 ring-primary/20"
+                    : "border-border hover:border-primary/50"
+            )}
         >
-            {/* Thumbnail placeholder */}
-            <div className="h-24 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                <span className="text-xs font-mono text-gray-400 uppercase tracking-wider">
-                    {config.id}
-                </span>
+            <div className="aspect-[3/4] bg-muted rounded-xl mb-6 overflow-hidden border border-border flex items-center justify-center">
+                <span className="text-muted-foreground font-medium">Preview</span>
             </div>
-
-            {/* Info */}
-            <div className="px-3 py-2">
-                <p className="text-sm font-semibold text-gray-800">{config.label}</p>
-                <p className="text-xs text-gray-500 line-clamp-2">{config.description}</p>
-            </div>
+            <h3 className="text-xl font-semibold text-foreground mb-2">{name}</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+                {description}
+            </p>
 
             {/* Selected indicator */}
             {isSelected && (
-                <div className="absolute top-2 right-2 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                    <Check size={12} className="text-white" />
+                <div className="absolute top-4 right-4 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-sm">
+                    <Check size={14} />
                 </div>
             )}
-        </button>
+        </div>
     );
-}
+};
+
+export default TemplatePreviewCard;

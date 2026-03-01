@@ -1,37 +1,37 @@
 export const Verification = () => {
     return (
-        <section className="py-24 bg-white dark:bg-background-dark">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="py-24 bg-background">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center max-w-2xl mx-auto mb-16">
-                    <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">Verification Process</h2>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm">Three checks most resumes fail.</p>
+                    <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Why Most Resumes Fail ATS</h2>
+                    <p className="text-lg text-muted-foreground leading-relaxed">It's not your experience—it's how the machines see it.</p>
                 </div>
                 <div className="grid md:grid-cols-3 gap-8">
-                    <div className="p-8 border border-[#e2e8f0] dark:border-slate-800 rounded hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] transition-shadow">
-                        <div className="w-14 h-14 bg-indigo-500/10 rounded-full flex items-center justify-center text-[#10B981] mb-4">
-                            <span className="material-symbols-outlined text-[36px]">terminal</span>
+                    <div className="p-8 border border-border/60 rounded-2xl bg-white shadow-lg hover:shadow-xl hover:border-emerald-100 transition-all duration-300">
+                        <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 mb-6">
+                            <span className="material-symbols-outlined text-3xl">terminal</span>
                         </div>
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Human-Readable Layout</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                            We validate that header data, work history, and education fields are correctly identified by optical and digital parsers.
+                        <h3 className="text-xl font-bold text-foreground mb-4">Parsing Visibility</h3>
+                        <p className="text-base text-muted-foreground leading-relaxed">
+                            Many resumes are digital "ghosts". We ensure your header data, work history, and skills are 100% visible to recruitment software.
                         </p>
                     </div>
-                    <div className="p-8 border border-[#e2e8f0] dark:border-slate-800 rounded hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] transition-shadow">
-                        <div className="w-14 h-14 bg-indigo-500/10 rounded-full flex items-center justify-center text-[#10B981] mb-4">
-                            <span className="material-symbols-outlined text-[36px]">database</span>
+                    <div className="p-8 border border-border/60 rounded-2xl bg-white shadow-lg hover:shadow-xl hover:border-emerald-100 transition-all duration-300">
+                        <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 mb-6">
+                            <span className="material-symbols-outlined text-3xl">database</span>
                         </div>
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Recruiter Search Matching</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                            Compare your document against industry-standard requirements to ensure your skills match recruiter search queries.
+                        <h3 className="text-xl font-bold text-foreground mb-4">Keyword Density</h3>
+                        <p className="text-base text-muted-foreground leading-relaxed">
+                            Most candidates use the wrong terminology. We compare your data against industry standards to match what recruiters search for.
                         </p>
                     </div>
-                    <div className="p-8 border border-[#e2e8f0] dark:border-slate-800 rounded hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] transition-shadow">
-                        <div className="w-14 h-14 bg-indigo-500/10 rounded-full flex items-center justify-center text-[#10B981] mb-4">
-                            <span className="material-symbols-outlined text-[36px]">description</span>
+                    <div className="p-8 border border-border/60 rounded-2xl bg-white shadow-lg hover:shadow-xl hover:border-emerald-100 transition-all duration-300">
+                        <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 mb-6">
+                            <span className="material-symbols-outlined text-3xl">description</span>
                         </div>
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Compliance Check</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                            Automated checks for problematic elements like text boxes, graphics, and non-standard fonts that break ATS systems.
+                        <h3 className="text-xl font-bold text-foreground mb-4">Structural Integrity</h3>
+                        <p className="text-base text-muted-foreground leading-relaxed">
+                            Text boxes, graphics, and custom fonts are ATS killers. Our high-fidelity check ensures your file structure remains compliant.
                         </p>
                     </div>
                 </div>

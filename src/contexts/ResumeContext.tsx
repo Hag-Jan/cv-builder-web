@@ -7,7 +7,7 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { v4 as uuidv4 } from "uuid";
 
 // Import Schema v2
-import type { ResumeV2, ResumeSectionV2 } from "@/types/resume-schema-v2";
+import type { ResumeV2, ResumeSectionV2, ResumeDesignSettings } from "@/types/resume-schema-v2";
 import { migrateV1toV2, isV1Resume } from "@/lib/schema/migrate-v1-to-v2";
 
 interface ResumeContextType {
@@ -17,7 +17,9 @@ interface ResumeContextType {
     addSection: (type: ResumeSectionV2["type"]) => void;
     removeSection: (id: string) => void;
     saveResume: () => Promise<void>;
-    updateTemplate: (templateId: string) => void;
+    updateTemplate: (templateId: ResumeV2["templateId"]) => void;
+    updateDesign: (settings: Partial<ResumeDesignSettings>) => void;
+    loadResume: (incoming: ResumeV2) => void;
     lastUpdate: number;
 }
 
@@ -246,10 +248,40 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
         }
     }, [user, setResume]);
 
-    const updateTemplate = useCallback((templateId: string) => {
+    const updateTemplate = useCallback((templateId: ResumeV2["templateId"]) => {
+        const now = Date.now();
+        lastUpdateRef.current = now;
+        const prev = resumeRef.current;
+        if (!prev) return;
+        const next: ResumeV2 = {
+            ...prev,
+            templateId,
+            metadata: { ...prev.metadata, updatedAt: new Date(now).toISOString() }
+        };
+        resumeRef.current = next;
+        setResumeState(next);
+    }, []);
+
+    const loadResume = useCallback((incoming: ResumeV2) => {
+        const now = Date.now();
+        lastUpdateRef.current = now;
+        const stamped: ResumeV2 = {
+            ...incoming,
+            metadata: { ...incoming.metadata, updatedAt: new Date(now).toISOString() }
+        };
+        setResume(stamped);
+    }, [setResume]);
+
+    const updateDesign = useCallback((settings: Partial<ResumeDesignSettings>) => {
+        const now = Date.now();
+        lastUpdateRef.current = now;
         setResume((prev) => {
             if (!prev) return null;
-            return { ...prev, templateId };
+            return {
+                ...prev,
+                design: { ...prev.design, ...settings },
+                metadata: { ...prev.metadata, updatedAt: new Date(now).toISOString() }
+            };
         });
     }, [setResume]);
 
@@ -279,8 +311,11 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
         removeSection,
         lastUpdate: lastUpdateRef.current,
         saveResume,
-        updateTemplate
-    }), [resume, loading, updateSection, addSection, removeSection, saveResume, updateTemplate]);
+        updateTemplate,
+        updateDesign,
+        loadResume
+    }), [resume, loading, updateSection, addSection, removeSection, saveResume, updateTemplate, updateDesign, loadResume]);
+
 
     return (
         <ResumeContext.Provider value={contextValue}>

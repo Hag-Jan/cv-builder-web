@@ -48,14 +48,7 @@ export function CustomSectionEditor({ section }: { section: CustomSectionV2 }) {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center border-b dark:border-gray-800 pb-2">
-                <div className="flex items-center gap-2">
-                    <Type className="w-5 h-5 text-gray-400" />
-                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                        {section.title || "Custom Section"}
-                    </h3>
-                </div>
-            </div>
+
 
             <div className="space-y-4">
                 <div className="space-y-1">

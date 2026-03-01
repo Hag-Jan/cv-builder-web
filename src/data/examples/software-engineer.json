@@ -1,0 +1,122 @@
+{
+    "id": "software-engineer-example",
+    "title": "Software Engineer",
+    "schemaVersion": "2.0",
+    "templateId": "tech-clean",
+    "design": {
+        "fontFamily": "system-ui, -apple-system, sans-serif",
+        "headingSize": 18,
+        "bodySize": 10,
+        "primaryColor": "#2563EB",
+        "layout": "single-column",
+        "spacing": 16
+    },
+    "sections": [
+        {
+            "id": "contact",
+            "type": "contact",
+            "name": "Sarah Chen",
+            "email": "sarah.chen@email.com",
+            "phone": "(415) 555-0198",
+            "location": "San Francisco, CA",
+            "linkedin": "linkedin.com/in/sarahc",
+            "github": "github.com/sarahcodes"
+        },
+        {
+            "id": "summary",
+            "type": "summary",
+            "content": "Senior Software Engineer with 7+ years of experience architecting highly scalable web applications and microservices. Proven track record of reducing system latency by 40% and leading front-end migrations. Passionate about Developer Experience (DX), CI/CD pipelines, and writing clean, maintainable TypeScript."
+        },
+        {
+            "id": "experience",
+            "type": "experience",
+            "title": "Experience",
+            "items": [
+                {
+                    "id": "exp-1",
+                    "role": "Senior Software Engineer",
+                    "company": "TechFlow Inc.",
+                    "location": "San Francisco, CA",
+                    "startDate": "Mar 2021",
+                    "endDate": "Present",
+                    "bullets": [
+                        "Architected a new React/Next.js frontend that improved Lighthouse performance scores from 65 to 98.",
+                        "Spearheaded the migration of a monolithic Node.js backend to Go microservices, reducing AWS infrastructure costs by 30%.",
+                        "Mentored 4 junior engineers and established strictly typed GraphQL schemas across all consumer-facing APIs."
+                    ]
+                },
+                {
+                    "id": "exp-2",
+                    "role": "Software Engineer",
+                    "company": "DataSync",
+                    "location": "Seattle, WA",
+                    "startDate": "Jun 2018",
+                    "endDate": "Feb 2021",
+                    "bullets": [
+                        "Developed high-throughput data ingestion pipelines using Apache Kafka and Python, processing 2M+ events daily.",
+                        "Built a real-time analytics dashboard using React and WebSockets, increasing daily active users by 15%."
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "skills",
+            "type": "skills",
+            "title": "Technical Skills",
+            "categories": [
+                {
+                    "id": "cat-1",
+                    "label": "Languages",
+                    "skills": [
+                        "TypeScript",
+                        "JavaScript",
+                        "Python",
+                        "Go",
+                        "SQL"
+                    ]
+                },
+                {
+                    "id": "cat-2",
+                    "label": "Frameworks",
+                    "skills": [
+                        "React",
+                        "Next.js",
+                        "Node.js",
+                        "Express",
+                        "GraphQL"
+                    ]
+                },
+                {
+                    "id": "cat-3",
+                    "label": "Tools & Cloud",
+                    "skills": [
+                        "AWS",
+                        "Docker",
+                        "Kubernetes",
+                        "Redis",
+                        "PostgreSQL",
+                        "CI/CD"
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "education",
+            "type": "education",
+            "title": "Education",
+            "items": [
+                {
+                    "id": "edu-1",
+                    "degree": "B.S. in Computer Science",
+                    "school": "University of Washington",
+                    "date": "2018",
+                    "honors": "Summa Cum Laude, GPA: 3.9/4.0"
+                }
+            ]
+        }
+    ],
+    "metadata": {
+        "createdAt": 1708801234567,
+        "updatedAt": 1708801234567
+    }
+}

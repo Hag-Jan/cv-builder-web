@@ -1,16 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase.client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
-export default function LoginPage() {
+function LoginContent() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLogin, setIsLogin] = useState(true);
     const [error, setError] = useState("");
     const router = useRouter();
+    const searchParams = useSearchParams();
 
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -21,7 +22,11 @@ export default function LoginPage() {
             } else {
                 await createUserWithEmailAndPassword(auth, email, password);
             }
-            router.push("/editor");
+
+            // Redirect back to the requested URL, or default to editor
+            const redirectUrl = searchParams.get("redirect") || "/editor";
+            router.push(redirectUrl);
+
         } catch (err: any) {
             setError(err.message);
         }
@@ -61,5 +66,13 @@ export default function LoginPage() {
                 </p>
             </div>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<div className="flex h-screen items-center justify-center bg-gray-100"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div></div>}>
+            <LoginContent />
+        </Suspense>
     );
 }

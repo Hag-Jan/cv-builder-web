@@ -50,7 +50,7 @@ const SECTION_LABELS: Record<SectionTypeV2, string> = {
  */
 export default function SectionNav({ sections, activeSectionId, onSelect }: SectionNavProps) {
     return (
-        <nav className="flex flex-col items-center gap-1 py-4 px-2 bg-white border-r border-gray-200 w-[60px] shrink-0">
+        <nav className="flex flex-col items-center gap-1 py-4 px-2 bg-background border-r border-border w-[60px] shrink-0 transition-colors duration-150">
             {sections.map((section) => {
                 const Icon = SECTION_ICONS[section.type] || FileText;
                 const label = section.type === "custom" ? (section.label || "Custom") : SECTION_LABELS[section.type];
@@ -63,10 +63,10 @@ export default function SectionNav({ sections, activeSectionId, onSelect }: Sect
                         title={label}
                         className={`
               relative group flex items-center justify-center
-              w-10 h-10 rounded-lg transition-all duration-200
+              w-10 h-10 rounded-lg transition-all duration-150
               ${isActive
-                                ? "bg-blue-100 text-blue-700 shadow-sm"
-                                : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                                ? "bg-primary text-primary-foreground shadow-sm"
+                                : "text-muted-foreground hover:bg-muted hover:text-foreground"
                             }
             `}
                     >
@@ -76,7 +76,7 @@ export default function SectionNav({ sections, activeSectionId, onSelect }: Sect
                         <span
                             className="
                 absolute left-full ml-2 px-2 py-1
-                text-xs font-medium text-white bg-gray-800 rounded
+                text-xs font-medium text-background bg-foreground rounded
                 opacity-0 group-hover:opacity-100
                 pointer-events-none transition-opacity duration-150
                 whitespace-nowrap z-50

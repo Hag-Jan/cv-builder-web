@@ -57,3 +57,8 @@ node_modules/
 
 # env
 .env.local
+*.pdf
+*.log
+package.json.backup
+package-lock 2.json
+package-lock 3.json

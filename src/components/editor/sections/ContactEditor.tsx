@@ -116,10 +116,7 @@ export function ContactEditor({ section }: { section: ContactSectionV2 }) {
 
     return (
         <div className="space-y-5">
-            <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3">
-                <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 tracking-tight">Contact Information</h3>
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50 dark:bg-gray-800/50 px-2 py-1 rounded">Basics</span>
-            </div>
+
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-4">
                 <div className="md:col-span-2">
@@ -183,6 +180,7 @@ export function ContactEditor({ section }: { section: ContactSectionV2 }) {
                     label="LinkedIn Profile"
                     field="linkedin"
                     value={section.linkedin || ""}
+                    type="url"
                     placeholder="linkedin.com/in/username"
                     icon={Linkedin}
                     isInvalid={touched.linkedin && errors.linkedin}
@@ -195,6 +193,7 @@ export function ContactEditor({ section }: { section: ContactSectionV2 }) {
                     label="GitHub Profile"
                     field="github"
                     value={section.github || ""}
+                    type="url"
                     placeholder="github.com/username"
                     icon={Github}
                     isInvalid={touched.github && errors.github}

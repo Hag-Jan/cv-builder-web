@@ -54,6 +54,13 @@ export const PaginatedPreview: React.FC<PaginatedPreviewProps> = ({
     forceContinuous = false,
     zoom = 1,
 }) => {
+    // Extract design settings for layout propagation
+    const designersFont = resume.design?.fontFamily || "Inter, system-ui, sans-serif";
+    const fontSize = resume.design?.fontSize ? `${resume.design.fontSize}pt` : "10pt";
+    const lineHeight = resume.design?.lineHeight ? `${resume.design.lineHeight}` : "1.5";
+    const pageMargins = resume.design?.pageMargins ? `${resume.design.pageMargins}mm` : "20mm";
+    const entrySpace = resume.design?.entrySpace ? `${resume.design.entrySpace}px` : "16px";
+
     // useDeferredValue lets React keep the current layout stable while computing
     // the new one in the background — zero jank during typing.
     const deferredResume = useDeferredValue(resume);
@@ -151,7 +158,7 @@ export const PaginatedPreview: React.FC<PaginatedPreviewProps> = ({
 
     if (!isMounted) {
         return (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "40px 0" }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "0 0 40px 0" }}>
                 <p style={{ color: "#9CA3AF" }}>Loading preview...</p>
             </div>
         );
@@ -161,8 +168,13 @@ export const PaginatedPreview: React.FC<PaginatedPreviewProps> = ({
     if (forceContinuous) {
         const Component = template.HtmlComponent;
         return (
-            <div style={{ zoom } as React.CSSProperties}>
-                <A4Page isContinuous>
+            <div style={{
+                zoom,
+                fontSize,
+                lineHeight,
+                "--entry-space": entrySpace,
+            } as React.CSSProperties}>
+                <A4Page isContinuous pageMargins={pageMargins}>
                     {liveBlocks.length > 0 ? liveBlocks : <Component resume={resume} />}
                 </A4Page>
             </div>
@@ -183,35 +195,23 @@ export const PaginatedPreview: React.FC<PaginatedPreviewProps> = ({
             <div
                 style={{
                     zoom,
+                    fontFamily: designersFont,
+                    fontSize,
+                    lineHeight,
+                    "--entry-space": entrySpace,
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
-                    padding: "40px 0",
+                    padding: "0 0 80px 0",
                     minHeight: "100%",
                 } as React.CSSProperties}
             >
-                {/* Multi-page badge */}
-                {pageLayout.length > 1 && (
-                    <div style={{
-                        display: "flex", alignItems: "center", gap: 8,
-                        marginBottom: 24, padding: "6px 16px",
-                        background: "#fffbeb", border: "1px solid #fde68a",
-                        borderRadius: 6, color: "#92400e",
-                        fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em",
-                    }}>
-                        <svg width={16} height={16} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                        Resume exceeds 1 page ({pageLayout.length} pages)
-                    </div>
-                )}
 
                 {/* Pages */}
                 {pageLayout.length === 0 ? (
                     // Initial load: show a single page skeleton while measuring
                     isMeasuring ? (
-                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: 80, color: "#9CA3AF" }}>
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "0 0 80px 0", color: "#9CA3AF" }}>
                             <div style={{
                                 width: 32, height: 32, borderRadius: "50%",
                                 border: "2px solid #D1D5DB", borderTopColor: "#2563EB",
@@ -223,13 +223,13 @@ export const PaginatedPreview: React.FC<PaginatedPreviewProps> = ({
                         </div>
                     ) : (
                         // Fallback: no layout yet, show full component
-                        <A4Page>
+                        <A4Page pageMargins={pageMargins}>
                             <template.HtmlComponent resume={resume} />
                         </A4Page>
                     )
                 ) : (
                     pageLayout.map((pageBlocks, pageIndex) => (
-                        <A4Page key={pageIndex}>
+                        <A4Page key={pageIndex} pageMargins={pageMargins}>
                             {pageBlocks.map((block, blockIndex) => {
                                 const isContinued =
                                     pageIndex > 0 &&
@@ -291,11 +291,11 @@ export const PaginatedPreview: React.FC<PaginatedPreviewProps> = ({
                     pointerEvents: "none",
                     display: "flex",
                     flexDirection: "column",
-                    fontFamily: deferredTemplate.theme?.fontFamily || "Inter, Arial, sans-serif",
-                    fontSize: deferredTemplate.theme?.fontSize?.body
-                        ? `${deferredTemplate.theme.fontSize.body}pt`
-                        : "10pt",
-                }}
+                    fontFamily: designersFont,
+                    fontSize,
+                    lineHeight,
+                    "--entry-space": entrySpace,
+                } as React.CSSProperties}
             >
                 {deferredTemplate.renderBlocks
                     ? deferredTemplate.renderBlocks(deferredResume)

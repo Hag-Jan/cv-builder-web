@@ -5,6 +5,7 @@ import { getTemplate } from "@/lib/pdf/templateEngine";
 import ZoomControls from "@/components/ZoomControls";
 import { ResumeV2 as Resume } from "@/types/resume-schema-v2";
 import { PaginatedPreview } from "@/components/preview/PaginatedPreview";
+import { sanitizeResumeObject } from "@/lib/utils/sanitizer";
 
 interface ResumePreviewProps {
     resume: Resume;
@@ -42,8 +43,6 @@ const ResumePreview = React.memo(function ResumePreview({ resume }: ResumePrevie
     // Runs synchronously on every resume change —  PaginatedPreview debounces
     // the expensive repagination pass internally, so this is safe.
     const sanitizedResume = useMemo(() => {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { sanitizeResumeObject } = require("@/lib/utils/sanitizer");
         return sanitizeResumeObject(resume);
     }, [resume]);
 
@@ -65,9 +64,17 @@ const ResumePreview = React.memo(function ResumePreview({ resume }: ResumePrevie
     const handleFitToScreen = () => setZoom(1);
 
     if (!hasContent) {
+        // Just return the same preview but empty, no special "Start filling" state to match Stitch
         return (
-            <div className="flex items-center justify-center h-full text-gray-500 bg-gray-50">
-                <p className="text-lg">Start filling your resume to see preview</p>
+            <div className="h-full flex flex-col overflow-hidden w-full relative">
+                <div className="flex-1 overflow-auto custom-scrollbar flex justify-center p-8">
+                    <PaginatedPreview
+                        resume={sanitizedResume}
+                        templateId={sanitizedResume.templateId}
+                        forceContinuous={viewMode === "continuous"}
+                        zoom={zoom}
+                    />
+                </div>
             </div>
         );
     }
@@ -79,46 +86,9 @@ const ResumePreview = React.memo(function ResumePreview({ resume }: ResumePrevie
             : "#F3F4F6";
 
     return (
-        <div className="h-full flex flex-col overflow-hidden" style={{ backgroundColor: bgColor }}>
-            {/* ── Toolbar ──────────────────────────────────────────────── */}
-            <div className="flex-shrink-0 pt-3 px-4 pb-3 z-20 bg-white border-b border-gray-200 shadow-sm flex items-center justify-between gap-4">
-                <ZoomControls
-                    zoom={zoom}
-                    onZoomIn={handleZoomIn}
-                    onZoomOut={handleZoomOut}
-                    onFitToScreen={handleFitToScreen}
-                />
-
-                {/* View mode toggle */}
-                <div className="flex items-center bg-gray-100 rounded-md p-1 border border-gray-200">
-                    <button
-                        onClick={() => setViewMode("paginated")}
-                        className={`px-3 py-1.5 text-xs font-bold rounded transition-colors ${viewMode === "paginated"
-                                ? "bg-white text-blue-700 shadow-sm pointer-events-none"
-                                : "text-gray-500 hover:text-gray-700"
-                            }`}
-                    >
-                        Paginated
-                    </button>
-                    <button
-                        onClick={() => setViewMode("continuous")}
-                        className={`px-3 py-1.5 text-xs font-bold rounded transition-colors ${viewMode === "continuous"
-                                ? "bg-white text-blue-700 shadow-sm pointer-events-none"
-                                : "text-gray-500 hover:text-gray-700"
-                            }`}
-                    >
-                        Continuous
-                    </button>
-                </div>
-            </div>
-
+        <div className="h-full flex flex-col overflow-hidden w-full relative shadow-2xl">
             {/* ── Scrollable preview area ──────────────────────────────── */}
-            {/*
-             * overflow-auto here + CSS zoom inside PaginatedPreview means
-             * scrollbars accurately reflect the zoomed content size.
-             * No extra wrapper divs — PaginatedPreview owns its own padding.
-             */}
-            <div className="flex-1 overflow-auto custom-scrollbar" style={{ backgroundColor: bgColor }}>
+            <div className="flex-1 overflow-auto custom-scrollbar flex justify-center pb-8">
                 <PaginatedPreview
                     resume={sanitizedResume}
                     templateId={sanitizedResume.templateId}
@@ -127,19 +97,20 @@ const ResumePreview = React.memo(function ResumePreview({ resume }: ResumePrevie
                 />
             </div>
 
-            {/* Scrollbar styling */}
-            {/* @ts-ignore — JSX style pragma */}
-            <style jsx global>{`
-                .custom-scrollbar::-webkit-scrollbar { width: 10px; }
-                .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.08); }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: rgba(0,0,0,0.25);
-                    border-radius: 5px;
-                    border: 2px solid transparent;
-                    background-clip: content-box;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: rgba(0,0,0,0.4); background-clip: content-box; }
-            `}</style>
+            {/* ── Floating Controls ──────────────────────────────────────────────── */}
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white/95 backdrop-blur-sm p-2 rounded-full shadow-lg border border-gray-200 z-50">
+                <button onClick={handleZoomIn} className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-600">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" /></svg>
+                </button>
+                <div className="w-px h-4 bg-gray-300"></div>
+                <button onClick={handleZoomOut} className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-600">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" /></svg>
+                </button>
+                <div className="w-px h-4 bg-gray-300"></div>
+                <button onClick={() => setViewMode(viewMode === "paginated" ? "continuous" : "paginated")} className={`p-2 hover:bg-gray-100 rounded-full transition-colors ${viewMode === "paginated" ? "text-green-500" : "text-gray-600"}`} title={`Toggle View (Currently: ${viewMode})`}>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                </button>
+            </div>
         </div>
     );
 });

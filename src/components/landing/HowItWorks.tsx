@@ -1,26 +1,26 @@
 export const HowItWorks = () => {
     return (
-        <section className="pt-24 pb-[16px] bg-slate-50 dark:bg-slate-900/50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="py-24 bg-muted/30">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center max-w-2xl mx-auto mb-16">
-                    <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">How it Works</h2>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm">Three steps. No formatting guesswork. No rejected applications.</p>
+                    <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">How it Works</h2>
+                    <p className="text-lg text-muted-foreground leading-relaxed">Three steps. No formatting guesswork. No rejected applications.</p>
                 </div>
-                <div className="grid md:grid-cols-3 gap-12">
-                    <div className="relative text-center">
-                        <div className="w-[36px] h-[36px] bg-[#1F2937] text-white rounded-full flex items-center justify-center font-bold text-lg mx-auto mb-6">1</div>
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Upload or Build Your Resume</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">Import your current file or use our editor to structure your experience the right way.</p>
+                <div className="grid md:grid-cols-3 gap-8 md:gap-12">
+                    <div className="relative group bg-white p-8 rounded-2xl border border-border shadow-lg hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                        <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center font-bold text-2xl mb-8 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300">1</div>
+                        <h3 className="text-xl font-bold text-foreground mb-4">Upload or Build</h3>
+                        <p className="text-base text-muted-foreground leading-relaxed">Import your current file or use our editor to structure your experience the right way from scratch.</p>
                     </div>
-                    <div className="relative text-center">
-                        <div className="w-[36px] h-[36px] bg-[#1F2937] text-white rounded-full flex items-center justify-center font-bold text-lg mx-auto mb-6">2</div>
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Get Your ATS Analysis</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">Our parser scans your document exactly like recruiter software to find hidden errors.</p>
+                    <div className="relative group bg-white p-8 rounded-2xl border border-border shadow-lg hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                        <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center font-bold text-2xl mb-8 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300">2</div>
+                        <h3 className="text-xl font-bold text-foreground mb-4">ATS Analysis</h3>
+                        <p className="text-base text-muted-foreground leading-relaxed">Our parser scans your document exactly like recruiter software to find hidden errors and keyword gaps.</p>
                     </div>
-                    <div className="relative text-center">
-                        <div className="w-[36px] h-[36px] bg-[#1F2937] text-white rounded-full flex items-center justify-center font-bold text-lg mx-auto mb-6">3</div>
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Apply with Confidence</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">Fix the red flags, download your optimized PDF, and start landing interviews.</p>
+                    <div className="relative group bg-white p-8 rounded-2xl border border-border shadow-lg hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                        <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center font-bold text-2xl mb-8 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300">3</div>
+                        <h3 className="text-xl font-bold text-foreground mb-4">Apply & Get Hired</h3>
+                        <p className="text-base text-muted-foreground leading-relaxed">Fix the red flags, download your optimized PDF, and start landing more callbacks and interviews immediately.</p>
                     </div>
                 </div>
             </div>

@@ -21,11 +21,11 @@ export default function ZoomControls({
     onFitToScreen,
 }: ZoomControlsProps) {
     return (
-        <div className="flex items-center gap-2 mb-4 justify-center">
+        <div className="flex items-center gap-2 mb-4 justify-center bg-background p-1 rounded-xl border border-border shadow-sm w-fit mx-auto">
             <button
                 onClick={onZoomOut}
                 disabled={zoom <= 0.5}
-                className="px-3 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="p-2 bg-background hover:bg-muted text-foreground rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 title="Zoom Out"
             >
                 <svg
@@ -47,14 +47,14 @@ export default function ZoomControls({
                 </svg>
             </button>
 
-            <span className="px-4 py-2 bg-white border border-gray-300 rounded text-sm font-medium min-w-[80px] text-center">
+            <span className="px-3 text-sm font-semibold text-foreground min-w-[60px] text-center">
                 {Math.round(zoom * 100)}%
             </span>
 
             <button
                 onClick={onZoomIn}
                 disabled={zoom >= 2}
-                className="px-3 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="p-2 bg-background hover:bg-muted text-foreground rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 title="Zoom In"
             >
                 <svg
@@ -70,15 +70,17 @@ export default function ZoomControls({
                     />
                     <path
                         fillRule="evenodd"
-                        d="M8 5a1 1 0 011 1v1h1a1 1 0 110 2H9v1a1 1 0 11-2 0V9H6a1 1 0 110-2h1V6a1 1 0 011-1z"
+                        d="M8 5a1 1 0 011-1h1v1a1 1 0 110 2H9v1a1 1 0 11-2 0V9H6a1 1 0 110-2h1V6a1 1 0 011-1z"
                         clipRule="evenodd"
                     />
                 </svg>
             </button>
 
+            <div className="w-[1px] h-6 bg-border mx-1" />
+
             <button
                 onClick={onFitToScreen}
-                className="px-3 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors text-sm font-medium ml-2"
+                className="px-4 py-2 bg-background hover:bg-muted text-foreground border border-border rounded-lg text-sm font-semibold transition-all shadow-sm"
                 title="Fit to Screen"
             >
                 Fit to Screen

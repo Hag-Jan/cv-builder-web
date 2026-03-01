@@ -12,345 +12,294 @@ import type {
 import { formatDate } from "@/lib/utils/date-formatter";
 import { EntryBlock } from "../preview/EntryBlock";
 import { parseSkillLevel } from "@/lib/utils/skill-parser";
-import { ResumeHeader } from "../preview/ResumeHeader";
-import { ResumeSummary } from "../preview/ResumeSummary";
 
-// ─────────────────────────────────────────────────────────
-// Business Two Column — 65/35 grid layout
-// DOM order: main column first (ATS reads left→right, top→bottom)
-// Visual sidebar via CSS Grid only — no floats, no tables.
-// Main: Summary, Experience, Education, Projects
-// Sidebar: Contact, Skills, Custom
-// ─────────────────────────────────────────────────────────
-
-const ACCENT = "#1E3A5F"; // dark navy
+const DEFAULT_ACCENT = "#1E3A5F";
+const DEFAULT_FONT = "Inter, Arial, sans-serif";
 
 interface BusinessTwoColumnProps {
     resume: Resume;
 }
 
-export function renderBusinessTwoColumnBlocks(resume: Resume): React.ReactNode[] {
-    const contact = resume.sections.find((s) => s.type === "contact") as ContactSection | undefined;
-    const sorted = [...resume.sections].sort((a, b) => a.order - b.order);
-    const blocks: React.ReactNode[] = [];
+function TwoColSectionTitle({
+    label,
+    accent,
+    size = "M",
+    isUpper = true
+}: {
+    label: string;
+    accent: string;
+    size?: "L" | "M" | "S";
+    isUpper?: boolean;
+}) {
+    const fontSize = size === "L" ? "text-base" : size === "S" ? "text-xs" : "text-sm";
+    return (
+        <h2
+            className={`${fontSize} font-black tracking-widest pb-3 mb-1 border-b-2 ${isUpper ? "uppercase" : ""}`}
+            style={{
+                borderColor: `${accent}20`,
+                color: accent
+            }}
+        >
+            {label}
+        </h2>
+    );
+}
 
-    // ── Header Block ──
-    if (contact) {
-        blocks.push(
-            <EntryBlock key="contact" type="contact" id="contact">
-                <header className="px-14 py-8 mb-4 border-b-2 border-gray-400">
-                    <ResumeHeader
-                        name={contact.name}
-                        email={contact.email}
-                        phone={contact.phone}
-                        location={contact.location}
-                        linkedin={contact.linkedin}
-                        github={contact.github}
-                        website={contact.website}
-                        accentColor="#111827"
-                        titleColor="text-gray-900"
-                        contactColor="text-gray-900"
-                        separatorColor="text-gray-400"
-                        borderColor="border-gray-400"
-                        align="left"
-                        fontFamily="Inter, Arial, sans-serif"
-                    />
-                </header>
+function renderSection(section: any, accent: string, size: any, caseMode: any) {
+    const isUpper = caseMode === "upper";
+
+    if (section.type === "experience") {
+        return (
+            <EntryBlock key={section.id} type="entry" id={section.id}>
+                <TwoColSectionTitle label="Experience" accent={accent} size={size} isUpper={isUpper} />
+                <div className="mt-6 space-y-6">
+                    {section.items.map((item: any) => (
+                        <div key={item.id}>
+                            <div className="flex justify-between items-baseline">
+                                <h3 className="text-sm font-black text-gray-800">{item.role}</h3>
+                                <time className="text-[11px] font-bold text-gray-400 truncate ml-4">
+                                    {formatDate(item.startDate)} — {formatDate(item.endDate || "Present")}
+                                </time>
+                            </div>
+                            <div className="flex justify-between items-baseline mb-3">
+                                <p className="text-[12px] font-bold" style={{ color: accent }}>{item.company}</p>
+                                <span className="text-[11px] font-bold text-gray-400">{item.location}</span>
+                            </div>
+                            <ul className="space-y-1.5 list-none">
+                                {item.bullets.map((b: string, i: number) => (
+                                    <li key={i} className="text-[12px] text-gray-600 leading-relaxed flex gap-2">
+                                        <span className="text-[14px] leading-none mt-0.5" style={{ color: accent }}>•</span>
+                                        {b}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    ))}
+                </div>
             </EntryBlock>
         );
     }
 
-    // ── Main Content Blocks ──
-    const mainTypes = ["summary", "experience", "education", "projects"];
-    const mainSections = sorted.filter((s) => s.type !== "contact" && mainTypes.includes(s.type));
-
-    mainSections.forEach((section) => {
-        // Summary
-        if (section.type === "summary" && (section as SummarySection).content) {
-            blocks.push(
-                <EntryBlock key={section.id} type="summary" id={section.id}>
-                    <section className="px-14 pb-4">
-                        <ResumeSummary
-                            content={(section as SummarySection).content}
-                            accentColor={ACCENT}
-                            fontFamily="Inter, Arial, sans-serif"
-                        />
-                    </section>
-                </EntryBlock>
-            );
-        }
-
-        // Experience
-        if (section.type === "experience" && (section as ExperienceSection).items.length > 0) {
-            blocks.push(
-                <EntryBlock
-                    key={`${section.id}-header`}
-                    type="header"
-                    id={`${section.id}-header`}
-                    sectionId={section.id}
-                    sectionTitle="Experience"
-                >
-                    <div className="px-8 pt-4 pb-2 mb-3">
-                        <TwoColSectionTitle label="Experience" accent={ACCENT} />
-                    </div>
-                </EntryBlock>
-            );
-            (section as ExperienceSection).items.forEach((item) => {
-                blocks.push(
-                    <EntryBlock
-                        key={item.id}
-                        type="entry"
-                        id={item.id}
-                        sectionId={section.id}
-                        sectionTitle="Experience"
-                    >
-                        <div className="px-8 py-2 mb-3 last:mb-0">
+    if (section.type === "education") {
+        return (
+            <EntryBlock key={section.id} type="entry" id={section.id}>
+                <TwoColSectionTitle label="Education" accent={accent} size={size} isUpper={isUpper} />
+                <div className="mt-6 space-y-5">
+                    {section.items.map((item: any) => (
+                        <div key={item.id}>
                             <div className="flex justify-between items-baseline">
-                                <h3 className="text-[13px] font-bold text-gray-900">{item.role}</h3>
-                                <time className="text-[10px] font-semibold text-gray-500 min-w-fit">
-                                    {formatDate(item.startDate)} – {formatDate(item.endDate || "Present")}
-                                </time>
+                                <h3 className="text-sm font-black text-gray-800">{item.school}</h3>
+                                <time className="text-[11px] font-bold text-gray-400">{formatDate(item.date)}</time>
                             </div>
-                            <div className="flex justify-between items-baseline mb-1.5">
-                                <p className="text-[11px] font-medium text-gray-600">{item.company}</p>
-                                {item.location && (
-                                    <p className="text-[10px] text-gray-500 italic">{item.location}</p>
-                                )}
-                            </div>
-                            {item.bullets && item.bullets.length > 0 && (
-                                <ul className="space-y-1 pl-1">
-                                    {item.bullets.map((b, i) => (
-                                        <li key={i} className="text-[11px] text-gray-700 flex gap-2">
-                                            <span style={{ color: ACCENT, flexShrink: 0 }}>›</span>
-                                            <span className="leading-snug">{b}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
+                            <p className="text-[12px] font-bold text-gray-500">{item.degree}</p>
+                            {item.gpa && <p className="text-[10px] font-black text-gray-400 mt-1 uppercase tracking-wider">GPA: {item.gpa}</p>}
                         </div>
-                    </EntryBlock>
-                );
-            });
-        }
+                    ))}
+                </div>
+            </EntryBlock>
+        );
+    }
 
-        // Education
-        if (section.type === "education" && (section as EducationSection).items.length > 0) {
-            blocks.push(
-                <EntryBlock
-                    key={`${section.id}-header`}
-                    type="header"
-                    id={`${section.id}-header`}
-                    sectionId={section.id}
-                    sectionTitle="Education"
-                >
-                    <div className="px-8 pt-4 pb-2 mb-3">
-                        <TwoColSectionTitle label="Education" accent={ACCENT} />
-                    </div>
-                </EntryBlock>
-            );
-            (section as EducationSection).items.forEach((item) => {
-                blocks.push(
-                    <EntryBlock
-                        key={item.id}
-                        type="entry"
-                        id={item.id}
-                        sectionId={section.id}
-                        sectionTitle="Education"
-                    >
-                        <div className="px-8 py-2 mb-2 last:mb-0">
-                            <div className="flex justify-between items-baseline">
-                                <h3 className="text-[12px] font-bold text-gray-900">{item.school}</h3>
-                                <time className="text-[10px] font-semibold text-gray-500 min-w-fit">
-                                    {formatDate(item.date)}
-                                </time>
+    if (section.type === "projects") {
+        return (
+            <EntryBlock key={section.id} type="projects" id={section.id}>
+                <TwoColSectionTitle label="Projects" accent={accent} size={size} isUpper={isUpper} />
+                <div className="mt-6 space-y-6">
+                    {section.items.map((item: any) => (
+                        <div key={item.id}>
+                            <div className="flex justify-between items-baseline mb-1">
+                                <h3 className="text-sm font-black text-gray-800">{item.name}</h3>
+                                {item.link && <span className="text-[11px] font-bold opacity-60 ml-4 truncate font-mono">{item.link.replace(/^https?:\/\//, '')}</span>}
                             </div>
-                            <p className="text-[11px] text-gray-600">{item.degree}</p>
-                            {(item.gpa || item.honors) && (
-                                <p className="text-[10px] text-gray-500 italic">
-                                    {[item.gpa && `GPA: ${item.gpa}`, item.honors].filter(Boolean).join(" | ")}
-                                </p>
-                            )}
+                            <div className="flex gap-2 text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3">
+                                {item.techStack?.join(' • ')}
+                            </div>
+                            <p className="text-[12px] text-gray-600 leading-relaxed">{item.description}</p>
+                            <ul className="mt-2 space-y-1">
+                                {item.bullets?.map((b: string, i: number) => (
+                                    <li key={i} className="text-[11px] text-gray-500 leading-relaxed flex gap-2">
+                                        <span style={{ color: accent }}>›</span>
+                                        {b}
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
-                    </EntryBlock>
-                );
-            });
-        }
+                    ))}
+                </div>
+            </EntryBlock>
+        );
+    }
 
-        // Projects
-        if (section.type === "projects" && (section as ProjectsSection).items.length > 0) {
-            blocks.push(
-                <EntryBlock
-                    key={`${section.id}-header`}
-                    type="header"
-                    id={`${section.id}-header`}
-                    sectionId={section.id}
-                    sectionTitle="Projects"
-                >
-                    <div className="px-8 pt-4 pb-2 mb-3">
-                        <TwoColSectionTitle label="Projects" accent={ACCENT} />
-                    </div>
-                </EntryBlock>
-            );
-            (section as ProjectsSection).items.forEach((item) => {
-                blocks.push(
-                    <EntryBlock
-                        key={item.id}
-                        type="projects"
-                        id={item.id}
-                        sectionId={section.id}
-                        sectionTitle="Projects"
-                    >
-                        <div className="px-8 py-2 mb-3 last:mb-0">
-                            <div className="flex justify-between items-baseline mb-0.5">
-                                <h3 className="text-[12px] font-bold text-gray-900">{item.name}</h3>
-                                {item.link && (
-                                    <p className="text-[10px]" style={{ color: ACCENT }}>
-                                        {item.link.replace(/^https?:\/\/(www\.)?/, "")}
-                                    </p>
-                                )}
-                            </div>
-                            {item.techStack && item.techStack.length > 0 && (
-                                <p className="text-[10px] text-gray-500 uppercase tracking-tight mb-1">
-                                    {item.techStack.join(" / ")}
-                                </p>
-                            )}
-                            {item.description && (
-                                <p className="text-[11px] text-gray-600 leading-snug mb-1">{item.description}</p>
-                            )}
-                            {item.bullets && item.bullets.length > 0 && (
-                                <ul className="space-y-0.5 pl-1">
-                                    {item.bullets.map((b, i) => (
-                                        <li key={i} className="text-[11px] text-gray-600 flex gap-2">
-                                            <span style={{ color: ACCENT, flexShrink: 0 }}>›</span>
-                                            <span>{b}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
+    if (section.type === "custom") {
+        return (
+            <EntryBlock key={section.id} type="custom" id={section.id}>
+                <TwoColSectionTitle label={section.title} accent={accent} size="S" isUpper={isUpper} />
+                <div className="mt-6 space-y-3">
+                    {section.content.map((c: string, i: number) => (
+                        <div key={i} className="text-[11px] font-bold text-gray-600 leading-relaxed flex gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full mt-1 shrink-0" style={{ backgroundColor: accent }}></span>
+                            {c}
                         </div>
-                    </EntryBlock>
-                );
-            });
+                    ))}
+                </div>
+            </EntryBlock>
+        );
+    }
+
+    return null;
+}
+
+export function renderBusinessTwoColumnBlocks(resume: Resume): React.ReactNode[] {
+    const DESIGN = resume.design || {};
+    const ACCENT = DESIGN.accentColor || DEFAULT_ACCENT;
+    const FONT = DESIGN.fontFamily || DEFAULT_FONT;
+    const contact = resume.sections.find((s) => s.type === "contact") as ContactSection | undefined;
+    const nameColor = DESIGN.applyColorToName ? ACCENT : "#111827";
+    const headingSize = DESIGN.headingSize || "M";
+    const headingCase = DESIGN.headingCase || "upper";
+
+    const sorted = [...resume.sections].sort((a, b) => a.order - b.order);
+
+    // Split into Main vs Sidebar
+    const mainSections = sorted.filter((s) => s.type !== "contact" && ["summary", "experience", "education", "projects"].includes(s.type));
+    const sidebarSections = sorted.filter((s) => ["skills", "custom"].includes(s.type));
+
+    const blocks: React.ReactNode[] = [];
+
+    // 1. Header Block
+    if (contact) {
+        blocks.push(
+            <EntryBlock key="contact" type="contact" id="contact">
+                <div className="flex bg-white" style={{ fontFamily: FONT }}>
+                    <div className="flex-grow pt-14 pb-10 px-12">
+                        <h1 className="text-6xl font-black tracking-tighter mb-4 leading-[0.85]" style={{ color: nameColor }}>
+                            {contact.name}
+                        </h1>
+                        <p className="text-xl font-black text-gray-300 uppercase tracking-[0.25em]">
+                            {(contact as any).jobTitle || "Professional Title"}
+                        </p>
+                    </div>
+                    <div
+                        className="w-[280px] pt-14 pb-10 px-8 flex flex-col justify-end gap-3 shrink-0"
+                        style={{ backgroundColor: `${ACCENT}08`, borderLeft: '1px solid #f1f5f9' }}
+                    >
+                        {contact.email && (
+                            <div className="text-[9px] font-black uppercase tracking-widest text-gray-500 flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: ACCENT }}></span>
+                                <span className="truncate">{contact.email}</span>
+                            </div>
+                        )}
+                        {contact.phone && (
+                            <div className="text-[9px] font-black uppercase tracking-widest text-gray-500 flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: ACCENT }}></span>
+                                {contact.phone}
+                            </div>
+                        )}
+                        {contact.location && (
+                            <div className="text-[9px] font-black uppercase tracking-widest text-gray-500 flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: ACCENT }}></span>
+                                {contact.location}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </EntryBlock>
+        );
+    }
+
+    // Prepare content for both columns
+    const mainContentElements: React.ReactNode[] = [];
+    mainSections.forEach(s => {
+        if (s.type === "summary") {
+            mainContentElements.push(
+                <div key={s.id} className="mb-8">
+                    <p className="text-[13px] text-gray-600 leading-relaxed font-medium">{(s as SummarySection).content}</p>
+                </div>
+            );
+        } else {
+            const rendered = renderSection(s, ACCENT, headingSize, headingCase);
+            if (rendered) mainContentElements.push(<div key={s.id} className="mb-8">{rendered}</div>);
         }
     });
 
-    // ── Sidebar Content Blocks ──
-    const sidebarTypes = ["skills", "custom"];
-    const sidebarSections = sorted.filter((s) => sidebarTypes.includes(s.type));
-
-    sidebarSections.forEach((section) => {
-        // Skills
-        if (section.type === "skills") {
-            blocks.push(
-                <EntryBlock
-                    key={`${section.id}-header`}
-                    type="header"
-                    id={`${section.id}-header`}
-                    sectionId={section.id}
-                    sectionTitle="Skills"
-                >
-                    <section className="px-14 pt-8 pb-4 bg-white">
-                        <TwoColSectionTitle label="Skills & Expertise" accent={ACCENT} />
-                    </section>
-                </EntryBlock>
-            );
-
-            (section as SkillsSection).categories.forEach((cat) => {
-                const cleanedSkills = cat.skills.map(s => s.trim()).filter(Boolean);
-                if (cleanedSkills.length === 0) return;
-
-                blocks.push(
-                    <EntryBlock key={cat.id} type="skills" id={cat.id} sectionId={section.id} sectionTitle="Skills">
-                        <div className="px-14 py-2 mb-4 last:mb-8 bg-white">
-                            <h3 className="text-[11px] font-bold uppercase tracking-tight text-gray-900 mb-1">
-                                {cat.label}
-                            </h3>
-                            <div className="flex flex-wrap gap-x-3 gap-y-1 leading-relaxed">
-                                {cleanedSkills.map((s, sidx) => {
-                                    const { name, level } = parseSkillLevel(s);
-                                    return (
-                                        <span key={sidx} className="text-[11px] text-gray-600 flex items-center">
-                                            {name}{level && <span className="text-gray-400 font-medium ml-1 italic">({level})</span>}
-                                            {sidx < cleanedSkills.length - 1 && <span className="text-gray-300 ml-3">/</span>}
-                                        </span>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    </EntryBlock>
-                );
-            });
-        }
-
-        // Custom
-        if (section.type === "custom") {
-            const customSection = section as CustomSection;
-            const isListSection = ["languages", "hobbies", "interests", "awards", "certifications"].includes(customSection.title.toLowerCase());
-
-            blocks.push(
-                <EntryBlock
-                    key={`${section.id}-header`}
-                    type="header"
-                    id={`${section.id}-header`}
-                    sectionId={section.id}
-                    sectionTitle={customSection.title}
-                >
-                    <section className="px-14 pt-8 pb-4 bg-white">
-                        <TwoColSectionTitle label={customSection.title} accent={ACCENT} />
-                    </section>
-                </EntryBlock>
-            );
-
-            if (isListSection) {
-                blocks.push(
-                    <EntryBlock key={`${section.id}-content`} type="custom" id={`${section.id}-content`} sectionId={section.id} sectionTitle={customSection.title}>
-                        <div className="px-14 py-2 mb-8 bg-white flex flex-wrap gap-x-6 gap-y-2">
-                            {customSection.content.filter(Boolean).map((c, i) => (
-                                <div key={i} className="text-[11px] text-gray-600 font-bold flex items-center gap-2">
-                                    <span style={{ color: ACCENT }}>•</span>
-                                    {c}
+    const sidebarContentElements: React.ReactNode[] = [];
+    sidebarSections.forEach(s => {
+        if (s.type === "skills") {
+            sidebarContentElements.push(
+                <div key={s.id} className="mb-8">
+                    <TwoColSectionTitle label="Skills" accent={ACCENT} size="S" />
+                    <div className="space-y-5 mt-6">
+                        {(s as SkillsSection).categories.map(cat => (
+                            <div key={cat.id}>
+                                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">{cat.label}</h4>
+                                <div className="space-y-3">
+                                    {cat.skills.map((raw, idx) => {
+                                        const { name, level } = parseSkillLevel(raw);
+                                        return (
+                                            <div key={idx} className="flex flex-col gap-1.5">
+                                                <div className="flex justify-between text-[11px] font-bold text-gray-600">
+                                                    <span>{name}</span>
+                                                    {level && <span className="text-[9px] opacity-60 font-medium">{level}</span>}
+                                                </div>
+                                                <div className="h-1 w-full bg-white rounded-full overflow-hidden border border-gray-100 shadow-sm">
+                                                    <div
+                                                        className="h-full rounded-full transition-all duration-500 ease-out"
+                                                        style={{
+                                                            backgroundColor: ACCENT,
+                                                            width: level?.toLowerCase().includes('adv') ? '85%' :
+                                                                level?.toLowerCase().includes('exp') ? '100%' :
+                                                                    level?.toLowerCase().includes('int') ? '60%' : '35%'
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
-                            ))}
-                        </div>
-                    </EntryBlock>
-                );
-            } else {
-                customSection.content.forEach((c, i) => {
-                    blocks.push(
-                        <EntryBlock key={`${section.id}-item-${i}`} type="custom" id={`${section.id}-item-${i}`} sectionId={section.id} sectionTitle={customSection.title}>
-                            <div className="px-14 py-2 mb-4 last:mb-8 bg-white">
-                                <p className="text-[11px] text-gray-600 leading-relaxed italic">{c}</p>
                             </div>
-                        </EntryBlock>
-                    );
-                });
-            }
+                        ))}
+                    </div>
+                </div>
+            );
+        } else {
+            const rendered = renderSection(s, ACCENT, headingSize, headingCase);
+            if (rendered) sidebarContentElements.push(<div key={s.id} className="mb-8">{rendered}</div>);
         }
     });
+
+    if (contact?.website) {
+        sidebarContentElements.push(
+            <div key="website" className="pt-6 border-t border-gray-100 mb-8">
+                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Portfolio</h4>
+                <a href={contact.website} className="text-[11px] font-bold text-gray-600 truncate block underline decoration-gray-200 underline-offset-4">{contact.website}</a>
+            </div>
+        );
+    }
+
+    // Zip items into segments
+    const maxLen = Math.max(mainContentElements.length, sidebarContentElements.length);
+    for (let i = 0; i < maxLen; i++) {
+        const isLast = i === maxLen - 1;
+        blocks.push(
+            <EntryBlock key={`segment-${i}`} type="custom" id={`segment-${i}`}>
+                <div className="flex bg-white" style={{ fontFamily: FONT }}>
+                    <div className={`flex-grow px-12 pr-8 ${isLast ? 'pb-16' : ''}`}>
+                        {mainContentElements[i] || null}
+                    </div>
+                    <div
+                        className={`w-[280px] px-8 ${isLast ? 'pb-16' : ''} shrink-0`}
+                        style={{ backgroundColor: `${ACCENT}08`, borderLeft: '1px solid #f1f5f9', minHeight: '100%' }}
+                    >
+                        {sidebarContentElements[i] || null}
+                    </div>
+                </div>
+            </EntryBlock>
+        );
+    }
 
     return blocks;
 }
 
 export default function BusinessTwoColumn({ resume }: BusinessTwoColumnProps) {
-    const blocks = renderBusinessTwoColumnBlocks(resume);
-
-    return (
-        <div
-            className="max-w-4xl mx-auto bg-white text-gray-800"
-            style={{ fontFamily: "Inter, Arial, sans-serif" }}
-        >
-            {blocks}
-        </div>
-    );
-}
-
-function TwoColSectionTitle({ label, accent }: { label: string; accent: string }) {
-    return (
-        <h2
-            className="text-[11px] font-extrabold uppercase tracking-[0.15em] pb-0.5 mb-1"
-            style={{ borderBottom: `2px solid ${accent}`, color: accent }}
-        >
-            {label}
-        </h2>
-    );
+    return <>{renderBusinessTwoColumnBlocks(resume)}</>;
 }

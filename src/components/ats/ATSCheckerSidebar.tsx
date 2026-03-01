@@ -8,6 +8,7 @@ import { KeywordBadges } from "./KeywordBadges";
 import { X, Loader2, AlertCircle, Zap, TrendingUp, Target, Sparkles, BrainCircuit } from "lucide-react";
 import { useATS } from "@/contexts/ATSContext";
 import { analyzeJobMatch, MatchAnalysis } from "@/lib/ai/actions";
+import type { AtsReport } from "@/lib/ats/types";
 
 interface ATSCheckerSidebarProps {
     resume: ResumeV2;
@@ -21,11 +22,13 @@ export function ATSCheckerSidebar({ resume, onClose }: ATSCheckerSidebarProps) {
     const [error, setError] = useState<string | null>(null);
     const [result, setResult] = useState<ATSAnalysisResponse | null>(null);
     const [aiAnalysis, setAiAnalysis] = useState<MatchAnalysis | null>(null);
+    const [simulation, setSimulation] = useState<AtsReport | null>(null);
     const [isDeepScanning, setIsDeepScanning] = useState(false);
     const [animatedScore, setAnimatedScore] = useState(0);
+    const [animatedSimScore, setAnimatedSimScore] = useState(0);
     const prevScoreRef = useRef(0);
+    const prevSimScoreRef = useRef(0);
 
-    // Animate score counter
     useEffect(() => {
         if (!result && !aiAnalysis) return;
         const target = aiAnalysis ? aiAnalysis.score : (result?.score || 0);
@@ -45,6 +48,48 @@ export function ATSCheckerSidebar({ resume, onClose }: ATSCheckerSidebarProps) {
         prevScoreRef.current = target;
     }, [result?.score, aiAnalysis?.score]);
 
+    // Animate simulation score
+    useEffect(() => {
+        if (!simulation) return;
+        const target = simulation.coverageScore;
+        const start = prevSimScoreRef.current;
+        const duration = 800;
+        const startTime = performance.now();
+
+        const animate = (now: number) => {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setAnimatedSimScore(Math.round(start + (target - start) * eased));
+            if (progress < 1) requestAnimationFrame(animate);
+        };
+
+        requestAnimationFrame(animate);
+        prevSimScoreRef.current = target;
+    }, [simulation?.coverageScore]);
+
+    // Automatically run the structural simulation independently of JD
+    useEffect(() => {
+        let isMounted = true;
+        const runSimulation = async () => {
+            try {
+                const simRes = await fetch("/api/ats/simulate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ resume, templateId: resume.templateId }),
+                });
+                if (simRes.ok && isMounted) {
+                    const simData: AtsReport = await simRes.json();
+                    setSimulation(simData);
+                }
+            } catch (error) {
+                console.error("Structural ATS Simulation failed:", error);
+            }
+        };
+        runSimulation();
+        return () => { isMounted = false; };
+    }, [resume]);
+
     const handleAnalyze = async () => {
         if (!jobDescription.trim()) {
             setError("Please enter a job description");
@@ -56,6 +101,7 @@ export function ATSCheckerSidebar({ resume, onClose }: ATSCheckerSidebarProps) {
         setAiAnalysis(null);
 
         try {
+
             // 1. Semantic Deep Scan (AI)
             setIsDeepScanning(true);
             const aiData = await analyzeJobMatch(resume, jobDescription);
@@ -152,14 +198,43 @@ export function ATSCheckerSidebar({ resume, onClose }: ATSCheckerSidebarProps) {
                         </div>
                     )}
 
-                    {(aiAnalysis || result) && (
+                    {(aiAnalysis || result || simulation) && (
                         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            <div className="py-4 bg-gray-50/50 rounded-xl border border-gray-100">
-                                <ATSScoreDisplay score={animatedScore} />
-                                <p className="text-center text-[10px] text-gray-400 mt-3 font-bold uppercase tracking-widest">
-                                    {aiAnalysis ? "Semantic AI Match Score" : "Keyword Alignment Score"}
-                                </p>
-                            </div>
+
+                            {/* Structural Simulation Card */}
+                            {simulation && (
+                                <div className="py-4 bg-blue-50/50 rounded-xl border border-blue-100">
+                                    <ATSScoreDisplay score={animatedSimScore} />
+                                    <p className="text-center text-[10px] text-blue-800 mt-3 font-bold uppercase tracking-widest">
+                                        Structural Parsing Score
+                                    </p>
+                                    {simulation.warnings.length > 0 ? (
+                                        <div className="mt-4 px-4 space-y-2">
+                                            <p className="text-xs font-bold text-red-600 uppercase tracking-wider mb-2 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Parser Warnings</p>
+                                            {simulation.warnings.map((w, i) => (
+                                                <p key={i} className="text-[11px] text-red-800 bg-red-50 p-2 rounded border border-red-100">{w}</p>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="mt-4 px-4 space-y-2">
+                                            <div className="p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
+                                                <Sparkles className="w-4 h-4 text-green-600" />
+                                                <p className="text-[11px] font-medium text-green-800">Perfect structural parsing! Your template is highly ATS readable.</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Contextual/JD Card */}
+                            {(aiAnalysis || result) && (
+                                <div className="py-4 bg-gray-50/50 rounded-xl border border-gray-100">
+                                    <ATSScoreDisplay score={animatedScore} />
+                                    <p className="text-center text-[10px] text-gray-400 mt-3 font-bold uppercase tracking-widest">
+                                        {aiAnalysis ? "Semantic AI Match Score" : "Keyword Alignment Score"}
+                                    </p>
+                                </div>
+                            )}
 
                             {aiAnalysis && (
                                 <div className="space-y-4">

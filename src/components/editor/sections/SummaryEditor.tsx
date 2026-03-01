@@ -29,11 +29,7 @@ export function SummaryEditor({ section }: { section: SummarySection }) {
 
     return (
         <div className="space-y-4">
-            <div className="flex justify-between items-center border-b dark:border-gray-800 pb-2">
-                <div className="space-y-1">
-                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 tracking-tight">Professional Summary</h3>
-                    <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Highlight your value proposition</p>
-                </div>
+            <div className="flex justify-end items-center mb-2">
                 <button
                     onClick={handleGenerate}
                     disabled={isGenerating}

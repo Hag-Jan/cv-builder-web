@@ -1,0 +1,117 @@
+{
+    "id": "product-manager-example",
+    "title": "Product Manager",
+    "schemaVersion": "2.0",
+    "templateId": "executive-classic",
+    "design": {
+        "fontFamily": "Georgia, serif",
+        "headingSize": 18,
+        "bodySize": 10,
+        "primaryColor": "#3730A3",
+        "layout": "single-column",
+        "spacing": 16
+    },
+    "sections": [
+        {
+            "id": "contact",
+            "type": "contact",
+            "name": "Marcus Johnson",
+            "email": "marcus.j@email.com",
+            "phone": "(617) 555-0921",
+            "location": "Boston, MA",
+            "linkedin": "linkedin.com/in/marcusjohnson-pm"
+        },
+        {
+            "id": "summary",
+            "type": "summary",
+            "content": "Data-driven Senior Product Manager with 8+ years of experience leading cross-functional teams to build and scale B2B SaaS products. Proven ability to translate complex market needs into actionable roadmaps, resulting in 3x revenue growth and 95% customer retention. Expert in Agile methodologies, Go-To-Market strategies, and stakeholder alignment."
+        },
+        {
+            "id": "experience",
+            "type": "experience",
+            "title": "Professional Experience",
+            "items": [
+                {
+                    "id": "exp-1",
+                    "role": "Senior Product Manager",
+                    "company": "CloudScale Analytics",
+                    "location": "Boston, MA",
+                    "startDate": "Aug 2020",
+                    "endDate": "Present",
+                    "bullets": [
+                        "Owned the end-to-end product lifecycle for the enterprise analytics suite, driving $5.2M in new ARR within 12 months of launch.",
+                        "Led a cross-functional squad of 12 engineers and 3 designers, shifting the team to two-week sprints and increasing delivery velocity by 25%.",
+                        "Conducted 50+ user interviews to identify a critical gap in data visualization, leading to a new feature that increased user engagement by 40%."
+                    ]
+                },
+                {
+                    "id": "exp-2",
+                    "role": "Product Manager",
+                    "company": "FinTech Innovators",
+                    "location": "New York, NY",
+                    "startDate": "Jan 2017",
+                    "endDate": "Jul 2020",
+                    "bullets": [
+                        "Launched a mobile payment gateway that processed $10M+ in transactions in its first quarter, capturing 15% market share.",
+                        "Collaborated with marketing to develop the Go-To-Market strategy, achieving a 20% conversion rate on the launch landing page.",
+                        "Prioritized the product backlog using RICE framework, ensuring a 98% alignment with quarterly OKRs."
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "skills",
+            "type": "skills",
+            "title": "Core Competencies",
+            "categories": [
+                {
+                    "id": "cat-1",
+                    "label": "Product Management",
+                    "skills": [
+                        "Roadmapping",
+                        "Agile & Scrum",
+                        "User Interviews",
+                        "A/B Testing",
+                        "GTM Strategy",
+                        "OKRs"
+                    ]
+                },
+                {
+                    "id": "cat-2",
+                    "label": "Data & Tools",
+                    "skills": [
+                        "SQL",
+                        "Tableau",
+                        "Mixpanel",
+                        "Jira",
+                        "Figma",
+                        "Confluence"
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "education",
+            "type": "education",
+            "title": "Education",
+            "items": [
+                {
+                    "id": "edu-1",
+                    "degree": "Master of Business Administration (MBA)",
+                    "school": "Harvard Business School",
+                    "date": "2016"
+                },
+                {
+                    "id": "edu-2",
+                    "degree": "B.S. in Economics",
+                    "school": "University of Chicago",
+                    "date": "2012"
+                }
+            ]
+        }
+    ],
+    "metadata": {
+        "createdAt": 1708801234568,
+        "updatedAt": 1708801234568
+    }
+}

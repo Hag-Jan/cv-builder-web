@@ -5,14 +5,46 @@
 export interface ResumeV2 {
     resumeId: string;
     schemaVersion: "2.0";
-    templateId: string;
+    templateId: "classic" | "modern" | "minimal" | "academic" | "creative" | "minimalist" | "executive" | "sidebar-pro" | "business-two-column" | "sidebar_pro" | "chronicle-timeline" | "nova-single" | "prism-sidebar" | "brijr-minimal" | "resumify-modern" | "universal-formal" | "resumave-clean" | "adiian-simple" | "executive-classic" | "tech-clean" | "minimal-pro";
     metadata: ResumeMetadata;
+    design?: ResumeDesignSettings;
     sections: ResumeSectionV2[];
 }
 
 export interface ResumeMetadata {
     createdAt: string; // ISO 8601
     updatedAt: string; // ISO 8601
+}
+
+// ── Global Design Settings ───────────────────────────────
+
+export interface ResumeDesignSettings {
+    // Colors
+    accentColor?: string;
+    applyColorToName?: boolean;
+    applyColorToHeadings?: boolean;
+    applyColorToJobTitles?: boolean;
+
+    // Formatting
+    fontFamily?: string;
+    fontSize?: number;       // pt
+    lineHeight?: number;
+    pageMargins?: number;    // mm
+    entrySpace?: number;     // px
+
+    // Headings
+    headingSize?: "L" | "M" | "S";
+    headingCase?: "upper" | "normal";
+
+    // Layout
+    layoutCols?: "1" | "2" | "mix";
+    headerAlign?: "left" | "center" | "right";
+    skillsMode?: "grid" | "level" | "compact" | "bubble";
+
+    // Meta formatting
+    language?: string;
+    dateFormat?: string;
+    pageFormat?: "A4" | "Letter";
 }
 
 // ── Section Union ────────────────────────────────────────
@@ -89,7 +121,9 @@ export interface EducationItemV2 {
     id: string;
     school: string;
     degree: string;
+    field?: string;
     date: string;
+    location?: string;
     gpa?: string;
     honors?: string;
 }
@@ -118,6 +152,7 @@ export interface ProjectItemV2 {
     id: string;
     name: string;
     description?: string;
+    date?: string;
     link?: string;
     techStack?: string[];
     bullets?: string[];

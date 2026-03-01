@@ -1,0 +1,112 @@
+{
+    "id": "marketing-specialist-example",
+    "title": "Marketing Specialist",
+    "schemaVersion": "2.0",
+    "templateId": "minimal",
+    "design": {
+        "fontFamily": "var(--font-inter)",
+        "headingSize": 18,
+        "bodySize": 10,
+        "primaryColor": "#10B981",
+        "layout": "single-column",
+        "spacing": 16
+    },
+    "sections": [
+        {
+            "id": "contact",
+            "type": "contact",
+            "name": "Emily Rivera",
+            "email": "emily.marketing@email.com",
+            "phone": "(312) 555-0842",
+            "location": "Chicago, IL",
+            "linkedin": "linkedin.com/in/emilyrivera",
+            "github": "emilymarketing.co"
+        },
+        {
+            "id": "summary",
+            "type": "summary",
+            "content": "Creative and analytical Marketing Specialist with 5 years of experience executing multi-channel digital campaigns that drive brand awareness and customer acquisition. Expert in content strategy, SEO optimization, and leveraging data analytics to decrease Customer Acquisition Cost (CAC) by 25%. Recognized for blending compelling storytelling with performance metrics."
+        },
+        {
+            "id": "experience",
+            "type": "experience",
+            "title": "Work Experience",
+            "items": [
+                {
+                    "id": "exp-1",
+                    "role": "Digital Marketing Manager",
+                    "company": "Growth Bloom Agency",
+                    "location": "Chicago, IL",
+                    "startDate": "Feb 2021",
+                    "endDate": "Present",
+                    "bullets": [
+                        "Managed a monthly ad spend of $150K across Google Ads and Meta Ads, achieving an average ROAS of 3.8x for B2C SaaS clients.",
+                        "Led a team of 3 content writers to overhaul the company blog, increasing organic traffic by 120% over 6 months through targeted SEO strategies.",
+                        "Designed and implemented automated email nurture sequences in HubSpot, improving lead-to-MQL conversion rates by 18%."
+                    ]
+                },
+                {
+                    "id": "exp-2",
+                    "role": "Marketing Coordinator",
+                    "company": "EcoStyle Brands",
+                    "location": "Austin, TX",
+                    "startDate": "Jul 2018",
+                    "endDate": "Jan 2021",
+                    "bullets": [
+                        "Coordinated the launch of 3 major product lines, organizing influencer outreach that generated 5M+ social media impressions.",
+                        "Analyzed weekly campaign performance using Google Analytics, providing actionable insights that reduced cost per click (CPC) by 15%.",
+                        "Managed the editorial calendar and drafted 50+ high-performing social media posts per month."
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "skills",
+            "type": "skills",
+            "title": "Skills & Expertise",
+            "categories": [
+                {
+                    "id": "cat-1",
+                    "label": "Marketing Channels & Strategy",
+                    "skills": [
+                        "SEO/SEM",
+                        "Content Marketing",
+                        "Email Campaigns",
+                        "Social Media Strategy",
+                        "PPC Advertising"
+                    ]
+                },
+                {
+                    "id": "cat-2",
+                    "label": "Tools & Analytics",
+                    "skills": [
+                        "Google Analytics",
+                        "HubSpot",
+                        "Salesforce",
+                        "Mailchimp",
+                        "Facebook Ads Manager",
+                        "Ahrefs"
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "education",
+            "type": "education",
+            "title": "Education",
+            "items": [
+                {
+                    "id": "edu-1",
+                    "degree": "B.A. in Communications",
+                    "school": "University of Texas at Austin",
+                    "date": "2018",
+                    "honors": "Dean's List 2016-2018"
+                }
+            ]
+        }
+    ],
+    "metadata": {
+        "createdAt": 1708801234569,
+        "updatedAt": 1708801234569
+    }
+}

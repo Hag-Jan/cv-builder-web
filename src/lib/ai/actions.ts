@@ -1,4 +1,4 @@
-import { ResumeV2 as Resume } from "@/types/resume-schema-v2";
+import { ResumeV2 as Resume, ResumeV2 } from "@/types/resume-schema-v2";
 import { extractResumeText, extractKeywords, matchKeywords, calculateScore } from "@/lib/ats/ats-analyzer";
 
 /**
@@ -104,4 +104,27 @@ export function applyImprovedBullet(
     }
 
     return updatedResume;
+}
+
+/**
+ * Generates a complete, ATS-ready resume example for a given role.
+ * Returns a full ResumeV2 object.
+ */
+export async function generateResumeExample(
+    role: string,
+    templateId?: string
+): Promise<ResumeV2> {
+    const response = await fetch("/api/ai/generate-example", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role, templateId }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to generate resume example");
+    }
+
+    const { resume } = await response.json();
+    return resume as ResumeV2;
 }
